@@ -273,6 +273,9 @@ void RSS_CPP::insertIntoHashtable(RSSITEM &newi, int i, unsigned int newitem) {
 }
 
 unsigned int const RSS_CPP::query(unsigned int x) {
+
+    printf(" RSS item: %ld\n", x);
+
 	int h;
 	RSSITEM *il;
 	h = hash31(m_a, m_b, x) % m_tblsz;
@@ -386,4 +389,17 @@ inline void RSS_CPP::recycleGroup(RSSGROUP & oldgroup)
 	m_freegroups[--m_gpt] = &oldgroup;
 	// if we have created an empty group, remove it 
 	assert(m_root->nextg != m_root);
+}
+
+void RSS_CPP::clear()
+{
+	int i;
+	for (i = 0; i<m_tblsz; i++)
+		m_hashtable[i] = NULL;
+
+	m_groups->count = 0;
+	m_groups->nextg = NULL;
+	m_groups->previousg = NULL;
+
+	m_groups->items = m_items;// TODO: check if there is more counters to reset
 }

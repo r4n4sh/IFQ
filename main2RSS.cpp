@@ -147,7 +147,7 @@ double dblmainmax(double a, double b) {return (a >= b ? a : b);}
 
 int main(int argc, char * argv[]) {
 		//scanf("%d%d%d", &counters, &threshold, &n);
-		int counters = 100;
+		double counters = 100;
 		int threshold = 1000;
 		int n = 100000;
 		double time;
@@ -163,15 +163,11 @@ int main(int argc, char * argv[]) {
 		int M = 65535;
 		float gamma = 4;
 
-		printf("argv[1]: %s\n", argv[1]);
-		printf("argv[2]: %s\n", argv[2]);
-		printf("argv[3]: %s\n", argv[3]);
-
 		if (argc > 1) n = atoi(argv[1]);
 		if (argc > 2) counters = atoi(argv[2]);
 		if (argc > 3) threshold = atoi(argv[3]);
-		n = 1;
-		counters = 4;
+		n = 4;
+		counters = 100;
 		threshold = 19531;
 		if (argc > 4) fp = fopen("/Users/ranashahout/Documents/workspace/eclipse_oxygen/wrss_cross/Chicago15Weighted.txt.1m.txt", "w");
 		if (argc > 5) M = atoi(argv[5]);
@@ -182,8 +178,6 @@ int main(int argc, char * argv[]) {
 			return 0;
 		}
 
-		
-
 		data = (unsigned long long *) malloc(sizeof(unsigned long long) * n);
 		weights = (unsigned *) malloc(sizeof(unsigned) * n);
 		init((double)1/(double)counters, gamma, M);
@@ -193,6 +187,7 @@ int main(int argc, char * argv[]) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			_ip = (unsigned long long)256*((unsigned long long)256*((unsigned long long)256*w + x) + y) + z;
 			data[i] = (ip << 32 | _ip);
+			printf("data[%d] = %d\n", i, data[i]);
 			fscanf(fp, "%d", weights+i);
 			//printf("weight = %d\n", weights[i] );
 		}
@@ -204,9 +199,6 @@ int main(int argc, char * argv[]) {
             update(data[i], weights[i]+40);
             if (i < 4) printf("weight[%d] = %d\n", i, weights[i]+40);
         }
-        for (i = 0; i < 4; i++) {
-            query(data[i]);
-        }
 		#else
 		#endif
 		endt = clock();
@@ -214,12 +206,16 @@ int main(int argc, char * argv[]) {
 
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
-
-		free(data);
 		
-		printf( "%d pairs took %lfs %dB [%d counters] \n", n, time, memory, counters);
+		printf( "%d pairs took %lfs %dB [%d counters]\n", n, time, memory, counters);
 		//fprintf(fp, "%d pairs took %lfs %dB [%d counters] \n", n, time, memory, counters);
 
+		for (i = 0; i < 4; i++) {
+			printf("data[%d] = %d\n", i, data[i]);
+            query(data[i]);
+        }
+
+		free(data);
 
 	return 0;
 }

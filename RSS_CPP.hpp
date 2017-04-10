@@ -35,6 +35,7 @@ public:
 	~RSS_CPP();
 	void update(int item, int weight);
 	int const size();
+	void clear();
 	unsigned int const query(unsigned int item);
 private:
 	void recycleGroup(RSSGROUP& oldgroup);

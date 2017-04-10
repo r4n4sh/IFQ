@@ -26,8 +26,8 @@ WRSS::WRSS(int windowSize, double gamma, int m, double epsilon)
     indexSize = maxOverflows + blocksNumber;
     head = maxOverflows - 1;
     indexHead = blocksNumber - 1;
-    index = new std::vector<int> (indexSize);
-    overflowsElements = new unsigned int[maxOverflows]; //b
+    index = new std::vector<int> (indexSize); // 0 means end of block
+    overflowsElements = new unsigned int[maxOverflows];
     rss = new RSS_CPP(epsilon, m, gamma);//y
     threshold = windowSize*m*epsilon / 4.; // W*M/k
     totalOverflows = new std::unordered_map<int, int> (maxOverflows);//B
@@ -44,18 +44,14 @@ WRSS::~WRSS()
 double WRSS::computeOverflowCount(unsigned int item)
 {
     double k = 4. / this->epsilon;
-    return (rss->query(item) / (this->m * this->windowSize / k));
+    return (rss->query(item) / (this->m * (this->windowSize / k)));
 }
 
 void WRSS::update(unsigned int item, int wieght)
 {
-    printf("WRSS update \n");
-    // End of a block
-    if (((++frameItems) % blockSize) == 0)
+
+    if (((++frameItems) % blockSize) == 0) {
         indexTail = (indexTail + 1) % indexSize;
-    
-    // New block is started
-    if (!(frameItems % blockSize)) {
         indexHead = (indexHead + 1) % indexSize;
         index->at(indexHead) = 0;
     }
@@ -64,8 +60,6 @@ void WRSS::update(unsigned int item, int wieght)
 
     try {
         if (index->at(indexTail)) {
-            printf("inside index->at[indexTail] \n");
-
             int oldId = overflowsElements[tail];
             if (!(totalOverflows->at(oldId) - 1))
                 totalOverflows->erase(oldId);
@@ -85,11 +79,12 @@ void WRSS::update(unsigned int item, int wieght)
 
     // overflow
     if (currOverflowCount > prevOverflowCount) {
+    	printf("OVERFLOW!! %ld %d  \n", item, wieght);
         head = (head + 1) % maxOverflows;
-        ++overflowsNumber;
         overflowsElements[head] = item;
+        ++overflowsNumber;
         indexHead = (indexHead + 1) % indexSize;
-        index->at(head) = 1;
+        index->at(indexHead) = 1;
         std::unordered_map<int,int>::const_iterator foundedItem = totalOverflows->find(item);
         if (foundedItem == totalOverflows->end())
             totalOverflows->insert(std::make_pair<int,int>(item,1));
@@ -100,8 +95,7 @@ void WRSS::update(unsigned int item, int wieght)
     // New frame
     if (frameItems == windowSize) {
         frameItems = 0;
-        free(rss);
-        rss = new RSS_CPP(epsilon, m, this->gamma);
+        rss->clear();
     }
 }
 
@@ -110,13 +104,17 @@ double WRSS::query(unsigned int item)
     int minOverFlows;
     double rssEstimation = this->rss->query(item);
 
+    printf("WRSS item: %ld\n", item);
+    printf("rssEstimation: %ld \n", rssEstimation);
+
     std::unordered_map<int,int>::const_iterator foundedItem = totalOverflows->find(item);
     if (foundedItem == totalOverflows->end()) // item has no oveflows
         minOverFlows = 0;
     else {
         minOverFlows = totalOverflows->at(item);
-        rssEstimation = (int) rssEstimation % (int) this->threshold;
+        //rssEstimation = (int) rssEstimation % (int) this->threshold;//TODO
     }
 
+    rssEstimation = (int) rssEstimation % (int) this->threshold; //TODO
     return (this->threshold * (minOverFlows + 2 ) + rssEstimation);
 }

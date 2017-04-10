@@ -98,9 +98,10 @@ double twototheminus(int k) {
 //initialise
 void init(double epsilon, float gamma, int M) {
 	int i;
-	int window_size = 100000;
-	for (i = 0; i < NUM_COUNTERS; i++)
-		counters[i] = new RSS_CPP(epsilon, M, gamma);
+	int window_size = 1600;
+	//for (i = 0; i < NUM_COUNTERS; i++)
+		//counters[i] = new RSS_CPP(epsilon, M, gamma);
+	counters[0] = new RSS_CPP(epsilon, M, gamma);
 	printf("Creating WRSS\n");
 	wrss = new WRSS(window_size, gamma, M, epsilon);
 }
@@ -111,7 +112,8 @@ void deinit() {
 
 void query(LCLitem_t item) {
     int i;
-    printf("query = %d \n", counters[0]->query(item));
+    printf("RSS query = %d \n", counters[0]->query(item));
+    printf("query item: %d \n", item);
 	printf("WRSS query = %d \n", wrss->query(item));
 }
 
@@ -119,11 +121,14 @@ void query(LCLitem_t item) {
 //update an input
 void update(LCLitem_t item, int count) {
 	int i;
-	for (i = 0; i < NUM_COUNTERS; i++) {
-		counters[i]->update(item & masks[i], count);
+	//for (i = 0; i < NUM_COUNTERS; i++) {
+		//counters[i]->update(item & masks[i], count);
 		//LCL_Update(counters[i], item & masks[i], count);
 		//P("update [%2d] ", i); PIP((item & masks[i]) >> 32); P(" "); PIP(item & masks[i]); P("\n");
-	}
+	//}
+
+	counters[0]->update(item & masks[i], count);
+
 	wrss->update(item & masks[0], count);
 }
 #else

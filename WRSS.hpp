@@ -21,7 +21,7 @@ public:
     ~WRSS();
     void update(unsigned int item, int wieght);
     double query(unsigned int item);
-    
+
 private:
     int frameItems;
     int blockSize;
