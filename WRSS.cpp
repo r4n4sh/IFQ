@@ -10,6 +10,57 @@
 #include <math.h>
 #include "WRSS.hpp"
 
+using namespace std;
+
+static inline int computeBlockLevels(int n)
+{
+	int trailingZeros;
+
+	for (trailingZeros = 0; !(n&1); n >>=1) ++trailingZeros;
+
+	return trailingZeros + 1;
+}
+
+void WRSS::populateSkipList(int blockNumber, int itemIdx)
+{
+
+	/* Level 0*/
+	Block block_0 = Block(blockNumber,0);
+    unordered_map<Block, unordered_map<int, int> >::const_iterator foundedTable = skiplistMap.find(block_0);
+
+    if (foundedTable == skiplistMap.end()) {
+    	unordered_map<int, int> idxToCount;
+    	idxToCount.insert(pair<int, int> (itemIdx, 1));
+    	skiplistMap.insert(pair<Block, unordered_map<int, int> > (block_0, idxToCount));
+    } else {
+    	unordered_map<int, int> blockItemMap = foundedTable->second;
+    	unordered_map<int, int>::const_iterator foundedItem = blockItemMap.find(itemIdx);
+
+    	if(foundedItem == blockItemMap.end())
+    		blockItemMap.insert(pair<int, int> (itemIdx, 1));
+    	else
+    		blockItemMap.at(itemIdx) = blockItemMap.at(itemIdx) + 1;
+    }
+
+    /* Level >=1 */
+
+    for (int level = 1; level < computeBlockLevels(blockNumber); ++level) {
+    	Block block = Block(blockNumber, level);
+    	Block prevLevelBlock = Block(blockNumber, level -1);
+    	Block prevBlock = Block(blockNumber -1, level -1);
+        unordered_map<Block, unordered_map<int, int> >::const_iterator prevLevelTableItr = skiplistMap.find(prevLevelBlock);
+        unordered_map<Block, unordered_map<int, int> >::const_iterator prevBlockTableItr = skiplistMap.find(prevBlock);
+
+        unordered_map<int, int> prevBlockTable = prevBlockTableItr->second;
+
+    	unordered_map<int, int> mergedblockTables = prevLevelTableItr->second;
+    	mergedblockTables.insert(prevBlockTable.begin(), prevBlockTable.end());
+    	skiplistMap.insert(pair<Block, unordered_map<int, int> > (block, mergedblockTables)); // insert do nothing if the key already exist
+    }
+
+
+}
+
 WRSS::WRSS(int windowSize, double gamma, int m, double epsilon)
 {
     frameItems = 0;
@@ -22,23 +73,27 @@ WRSS::WRSS(int windowSize, double gamma, int m, double epsilon)
     this->m = m;
     this->epsilon = epsilon;
     this->gamma = gamma;
-    maxOverflows = std::min(blocksNumber * 2, windowSize);
+    maxOverflows = min(blocksNumber * 2, windowSize);
     indexSize = maxOverflows + blocksNumber;
     head = maxOverflows - 1;
     indexHead = blocksNumber - 1;
-    index = new std::vector<int> (indexSize); // 0 means end of block
+    index = new vector<int> (indexSize); // 0 means end of block
     overflowsElements = new unsigned int[maxOverflows];
     rss = new RSS_CPP(epsilon, m, gamma);//y
     threshold = windowSize*m*epsilon / 4.; // W*M/k
-    totalOverflows = new std::unordered_map<int, int> (maxOverflows);//B
+    totalOverflows = new unordered_map<int, int> (maxOverflows);//B TODO: allocate static?
+
+    /* Query Interval Section */
+    skiplistSize = ceil(maxOverflows * log (maxOverflows));
+
 }
 
 WRSS::~WRSS()
 {
-    free(totalOverflows);
-    free(rss);
-    free(overflowsElements);
-    free(index);
+    delete(totalOverflows);
+    delete(rss);
+    delete [] overflowsElements;
+    delete(index);
 }
 
 double WRSS::computeOverflowCount(unsigned int item)
@@ -64,12 +119,12 @@ void WRSS::update(unsigned int item, int wieght)
             if (!(totalOverflows->at(oldId) - 1))
                 totalOverflows->erase(oldId);
             else
-                totalOverflows->insert(std::make_pair(oldId,totalOverflows->at(oldId) - 1));
+                totalOverflows->insert(make_pair(oldId,totalOverflows->at(oldId) - 1));
             tail = (tail + 1) % maxOverflows;
             --overflowsNumber;
             indexTail = (indexTail + 1) % indexSize;
         }
-    } catch (const std::out_of_range) {
+    } catch (const out_of_range) {
     }
 
     // Add item to RSS_CPP
@@ -79,17 +134,20 @@ void WRSS::update(unsigned int item, int wieght)
 
     // overflow
     if (currOverflowCount > prevOverflowCount) {
-    	printf("OVERFLOW!! %ld %d  \n", item, wieght);
+    	printf("OVERFLOW!! %u %d  \n", item, wieght);
         head = (head + 1) % maxOverflows;
         overflowsElements[head] = item;
+        idToIDx.insert(pair<int, int> (item, overflowsNumber));
         ++overflowsNumber;
+        assert(overflowsNumber < maxOverflows);
         indexHead = (indexHead + 1) % indexSize;
         index->at(indexHead) = 1;
-        std::unordered_map<int,int>::const_iterator foundedItem = totalOverflows->find(item);
+        unordered_map<int,int>::const_iterator foundedItem = totalOverflows->find(item);
         if (foundedItem == totalOverflows->end())
-            totalOverflows->insert(std::make_pair<int,int>(item,1));
+            totalOverflows->insert(make_pair<int,int>(item,1));
         else
             totalOverflows->at(item) = totalOverflows->at(item) + 1;
+        populateSkipList(frameItems/blockSize, idToIDx.at(item));
     }
 
     // New frame
@@ -104,10 +162,10 @@ double WRSS::query(unsigned int item)
     int minOverFlows;
     double rssEstimation = this->rss->query(item);
 
-    printf("WRSS item: %ld\n", item);
-    printf("rssEstimation: %ld \n", rssEstimation);
+    printf("WRSS item: %u\n", item);
+    printf("rssEstimation: %f \n", rssEstimation);
 
-    std::unordered_map<int,int>::const_iterator foundedItem = totalOverflows->find(item);
+    unordered_map<int,int>::const_iterator foundedItem = totalOverflows->find(item);
     if (foundedItem == totalOverflows->end()) // item has no oveflows
         minOverFlows = 0;
     else {
