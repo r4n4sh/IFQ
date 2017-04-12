@@ -187,7 +187,7 @@ int main(int argc, char * argv[]) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			_ip = (unsigned long long)256*((unsigned long long)256*((unsigned long long)256*w + x) + y) + z;
 			data[i] = (ip << 32 | _ip);
-			printf("data[%d] = %d\n", i, data[i]);
+			printf("data[%d] = %llu\n", i, data[i]);
 			fscanf(fp, "%d", weights+i);
 			//printf("weight = %d\n", weights[i] );
 		}
@@ -207,11 +207,11 @@ int main(int argc, char * argv[]) {
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
 		
-		printf( "%d pairs took %lfs %dB [%d counters]\n", n, time, memory, counters);
+		printf( "%d pairs took %lfs %dB [%f counters]\n", n, time, memory, counters);
 		//fprintf(fp, "%d pairs took %lfs %dB [%d counters] \n", n, time, memory, counters);
 
 		for (i = 0; i < 4; i++) {
-			printf("data[%d] = %d\n", i, data[i]);
+			printf("data[%d] = %llu\n", i, data[i]);
             query(data[i]);
         }
 

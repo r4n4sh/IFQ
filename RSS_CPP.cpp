@@ -274,7 +274,7 @@ void RSS_CPP::insertIntoHashtable(RSSITEM &newi, int i, unsigned int newitem) {
 
 unsigned int const RSS_CPP::query(unsigned int x) {
 
-    printf(" RSS item: %ld\n", x);
+    printf(" RSS item: %u\n", x);
 
 	int h;
 	RSSITEM *il;

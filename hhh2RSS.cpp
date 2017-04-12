@@ -97,7 +97,7 @@ double twototheminus(int k) {
 
 //initialise
 void init(double epsilon, float gamma, int M) {
-	int i;
+	//int i;
 	int window_size = 1600;
 	//for (i = 0; i < NUM_COUNTERS; i++)
 		//counters[i] = new RSS_CPP(epsilon, M, gamma);
@@ -111,23 +111,22 @@ void deinit() {
 }
 
 void query(LCLitem_t item) {
-    int i;
     printf("RSS query = %d \n", counters[0]->query(item));
-    printf("query item: %d \n", item);
-	printf("WRSS query = %d \n", wrss->query(item));
+    printf("query item: %llu \n", item);
+	printf("WRSS query = %f \n", wrss->query(item));
 }
 
 #ifndef PARALLEL
 //update an input
 void update(LCLitem_t item, int count) {
-	int i;
+	//int i;
 	//for (i = 0; i < NUM_COUNTERS; i++) {
 		//counters[i]->update(item & masks[i], count);
 		//LCL_Update(counters[i], item & masks[i], count);
 		//P("update [%2d] ", i); PIP((item & masks[i]) >> 32); P(" "); PIP(item & masks[i]); P("\n");
 	//}
 
-	counters[0]->update(item & masks[i], count);
+	counters[0]->update(item & masks[0], count);
 
 	wrss->update(item & masks[0], count);
 }
