@@ -176,3 +176,33 @@ double WRSS::query(unsigned int item)
     rssEstimation = (int) rssEstimation % (int) this->threshold; //TODO
     return (this->threshold * (minOverFlows + 2 ) + rssEstimation);
 }
+
+
+double WRSS::intervalQuery(unsigned int item, int b1, int b2)
+{
+
+	int firstBlock = (int) floor(b1 / blockSize) % (int) blocksNumber;
+	int secondBlock = (int) floor(b2 / blockSize) % (int) blocksNumber;
+	int minOverFlows;
+	int itemIdx;
+
+	/*
+	printf("item: %d\n", item);
+	printf("second block: %d first block: %d\n", secondBlock, firstBlock); */ //TODO: testing
+	 unordered_map<int,int>::const_iterator foundedItem = idToIDx.find(item);
+	    if (foundedItem == idToIDx.end()) // item has no overflows
+	        minOverFlows = 0;
+	    else {
+	    	itemIdx = idToIDx.at(item);
+	    	/*
+	    	printf("itemIDx: %d\n", itemIdx);
+	    	printf("overflowed in second: %d \n", *((int *)overflowedArr + maxOverflows * secondBlock + itemIdx));
+	    	printf("overflowed in first: %d \n", *((int *)overflowedArr + maxOverflows * firstBlock + itemIdx));
+			*/ //TODO: testing
+
+	    }
+
+	    // printf("minoverflowed: %d \n", minOverFlows); //TODO: testing
+	    return threshold * (minOverFlows + 2 );
+}
+

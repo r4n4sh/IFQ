@@ -42,6 +42,8 @@ Implementation of the 2-dimensional Hierarchical Heavy Hitters algorithm (HHH) f
 #define P(x...) fprintf(stderr, x)
 #define PIP(item) fprintf(stderr, "%3d.%3d.%3d.%3d", (int)(255&((item) >> 24)), (int)(255&((item) >> 16)), (int)(255&((item) >> 8)), (int)(255&((item) >> 0)))
 
+
+#define NAIVE_ALGO 1
 //#define NUM_COUNTERS 16 //number of masks
 //#define MAX_DESCENDANTS 512 //maximum number of direct descendents of a given ip pair
 
@@ -49,8 +51,17 @@ int min(int a, int b) {return (a <= b ? a : b);}
 int max(int a, int b) {return (a >= b ? a : b);}
 
 //The counters
+#ifdef RSS
 RSS_CPP * counters[NUM_COUNTERS];
+#endif
+
+#ifdef WRSS
 WRSS *wrss;
+#endif
+
+#ifdef NAIVE_ALGO
+NaiveWRSS * native_wrss;
+#endif
 //The masks associated with the counters
 //Note that we must ensure that they are in increasing order of generality
 /*LCLitem_t masks[NUM_COUNTERS] = {
@@ -97,13 +108,23 @@ double twototheminus(int k) {
 
 //initialise
 void init(double epsilon, float gamma, int M) {
-	//int i;
 	int window_size = 1600;
+
+#ifdef RSS
+	//int i;
 	//for (i = 0; i < NUM_COUNTERS; i++)
 		//counters[i] = new RSS_CPP(epsilon, M, gamma);
 	counters[0] = new RSS_CPP(epsilon, M, gamma);
+#endif
+#ifdef WRSS
 	printf("Creating WRSS\n");
 	wrss = new WRSS(window_size, gamma, M, epsilon);
+#endif
+#ifdef NAIVE_ALGO
+	window_size = 1600;
+	epsilon = 0.01;
+	native_wrss = new NaiveWRSS(window_size, gamma, M, epsilon);
+#endif
 }
 
 //deinitialise
@@ -111,14 +132,22 @@ void deinit() {
 }
 
 void query(LCLitem_t item) {
+#ifdef RSS
     printf("RSS query = %d \n", counters[0]->query(item));
-    printf("query item: %llu \n", item);
-	printf("WRSS query = %f \n", wrss->query(item));
+#endif
+
+#ifdef WRSS
+    printf("WRSS query = %f \n", wrss->query(item));
+#endif
+#ifdef NAIVE_ALGO
+    printf("Naive Algorithm query = %f\n", native_wrss->query(item));
+#endif
 }
 
 #ifndef PARALLEL
 //update an input
 void update(LCLitem_t item, int count) {
+#ifdef RSS
 	//int i;
 	//for (i = 0; i < NUM_COUNTERS; i++) {
 		//counters[i]->update(item & masks[i], count);
@@ -127,8 +156,13 @@ void update(LCLitem_t item, int count) {
 	//}
 
 	counters[0]->update(item & masks[0], count);
-
+#endif
+#ifdef WRSS
 	wrss->update(item & masks[0], count);
+#endif
+#ifdef NAIVE_ALGO
+	native_wrss->update(item & masks[0], count);
+#endif
 }
 #else
 #endif
