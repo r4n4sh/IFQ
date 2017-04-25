@@ -44,6 +44,7 @@ Implementation of the 2-dimensional Hierarchical Heavy Hitters algorithm (HHH) f
 
 
 #define NAIVE_ALGO 1
+#define WRSS 1
 //#define NUM_COUNTERS 16 //number of masks
 //#define MAX_DESCENDANTS 512 //maximum number of direct descendents of a given ip pair
 
@@ -55,9 +56,7 @@ int max(int a, int b) {return (a >= b ? a : b);}
 RSS_CPP * counters[NUM_COUNTERS];
 #endif
 
-#ifdef WRSS
 WRSS *wrss;
-#endif
 
 #ifdef NAIVE_ALGO
 NaiveWRSS * native_wrss;

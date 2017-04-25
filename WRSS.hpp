@@ -87,7 +87,9 @@ private:
     double computeOverflowCount(unsigned int item);
 
     /* Query Interval Section */
-    void populateSkipList(int blockNumber, int itemIdx);
+    void populateSkipListLevel_0(int blockNumber, int itemIdx);
+    void populateSkipListLevels(int blockNumber);
+    double partialIntervalQuery(int itemIdx, int secondBlock, int firstBlock);
 
     int skiplistSize;
     unordered_map<int, int> idToIDx;
