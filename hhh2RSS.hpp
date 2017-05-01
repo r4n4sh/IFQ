@@ -16,6 +16,7 @@
 #include "RSS_CPP.hpp"
 #include "WRSS.hpp"
 #include "NaiveWRSS.hpp"
+#include "BaseWRSS.hpp"
 //make sure we are passing the right #def around
 #ifndef DIMENSION2
 #error Invalid dimension

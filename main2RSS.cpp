@@ -22,6 +22,9 @@ The main function for the two-dimensional HHH program
 #endif
 #endif
 
+#define INTERVAL_ALGO 1
+//#define BASE_WRSS_ALGO 1
+//#define INTERVAL_NAIVE_ALGO 1
 //the masks
 LCLitem_t masks[NUM_COUNTERS] = {
 	//255.255.255.255
@@ -181,26 +184,37 @@ int main(int argc, char * argv[]) {
 		data = (unsigned long *) malloc(sizeof(unsigned long) * n);
 		weights = (unsigned *) malloc(sizeof(unsigned) * n);
 
-		init((double)1/(double)counters, gamma, M);
-
 		int window_size = 32;
 		double epsilon = 0.5;
-
+#ifdef INTERVAL_ALGO
 		WRSS *wrss = new WRSS(window_size, gamma, M, epsilon);
+#endif
+#ifdef BASE_WRSS_ALGO
+		BaseWRSS *bwrss = new BaseWRSS(window_size, gamma, M, epsilon);
+#endif
+#ifdef INTERVAL_NAIVE_ALGO
+		NaiveWRSS *nwrss = new NaiveWRSS(window_size, gamma, M, epsilon);
+#endif
 		for (i = 0; i < n; i++) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			data[i] = (unsigned long)256*((unsigned long)256*((unsigned long)256*w + x) + y) + z;
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			fscanf(fp, "%d", weights+i);
-			//printf("weight = %d\n", weights[i] );
 		}
 		begint = clock();
 		ftime(&begintb);
 		#ifndef PARALLEL
 
         for (i = 0; i < n; i++)  {
-            //update(data[i], weights[i]+40);
+#ifdef INTERVAL_ALGO
             wrss->update(data[i] & masks[0], weights[i]);
+#endif
+#ifdef BASE_WRSS_ALGO
+            bwrss->update(data[i] & masks[0], weights[i]);
+#endif
+#ifdef INTERVAL_NAIVE_ALGO
+            nwrss->update(data[i] & masks[0], weights[i]);
+#endif
         }
 
 		#else
@@ -211,13 +225,34 @@ int main(int argc, char * argv[]) {
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
 		
-		printf( "%d pairs took %lfs %dB [%f counters]\n", n, time, memory, counters);
-		//fprintf(fp, "%d pairs took %lfs %dB [%d counters] \n", n, time, memory, counters);
+		printf( "%d update pairs took %lfs %dB [%f counters]\n", n, time, memory, counters);
 
-		//for (i = 0; i < 4; i++) {
-        //    query(data[i]);
-        //}
+		begint = clock();
+		ftime(&begintb);
+		#ifndef PARALLEL
 
+        for (i = 0; i < n; i++)  {
+#ifdef INTERVAL_ALGO
+            wrss->intervalQuery(data[i] & masks[0], 1, window_size);
+#endif
+#ifdef BASE_WRSS_ALGO
+            bwrss->query(data[i] & masks[0]);
+#endif
+#ifdef INTERVAL_NAIVE_ALGO
+            nwrss->intervalQuery(data[i] & masks[0], 1, window_size);
+#endif
+        }
+
+		#else
+		#endif
+		endt = clock();
+		ftime(&endtb);
+
+		time = ((double)(endt-begint))/CLK_PER_SEC;
+		memory = maxmemusage();
+
+		printf( "%d query pairs took %lfs %dB [%f counters]\n", n, time, memory, counters);
+#ifdef INTERVAL_ALGO
 #ifdef TESTING
 		double result = wrss->testIntervalQuery(3 , 8);
 		cout << "test interval query: " << result << endl;
@@ -225,8 +260,17 @@ int main(int argc, char * argv[]) {
 		double result = wrss->intervalQuery(data[0], 3, 8);
 		cout << "test interval query: " << result << endl;
 #endif
+#endif
 		free(data);
-
+#ifdef INTERVAL_NAIVE_ALGO
+		free(nwrss);
+#endif
+#ifdef BASE_WRSS_ALGO
+		free(bwrss);
+#endif
+#ifdef INTERVAL_ALGO
+		free(wrss);
+#endif
 		return 0;
 }
 
