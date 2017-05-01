@@ -15,6 +15,8 @@
 
 #include "RSS_CPP.hpp"
 
+//#define TESTING 1
+
 using namespace std;
 
 typedef struct Block {
@@ -62,7 +64,9 @@ public:
     double query(unsigned int item);
     /* Query Interval Section */
     double intervalQuery(unsigned int item, int b1, int b2);
-
+#ifdef TESTING
+    double testIntervalQuery(unsigned int b2, unsigned int b1);
+#endif
 private:
     int frameItems;
     int blockSize;
@@ -71,6 +75,7 @@ private:
     vector<int> *index;
     int tail;
     int overflowsNumber;
+    int idx;
     int indexTail;
     int head;
     int indexHead;

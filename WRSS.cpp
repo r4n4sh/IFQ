@@ -8,15 +8,27 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <iostream>
 #include "WRSS.hpp"
 
 using namespace std;
 
+#ifdef TESTING
+int testArr[8] = {1,2,1,2,1,0,1,1};
+unsigned int firstOverflowed;
+unsigned int secondtOverflowed;
+unsigned int thirdOverflowed;
+unsigned int fourthOverflowed;
+unsigned int fifthOverflowed;
+unsigned int sixthOverflowed;
+#endif
+
 static inline int computeBlockLevels(int n)
 {
 	int trailingZeros;
-
-	for (trailingZeros = 0; !(n&1); n >>=1) ++trailingZeros;
+	if (!n) return 1;
+	for (trailingZeros = 0; !(n&1); n >>=1)
+		++trailingZeros;
 
 	return trailingZeros + 1;
 }
@@ -26,7 +38,9 @@ void WRSS::populateSkipListLevel_0(int blockNumber, int itemIdx)
      /* Level 0*/
      Block block_0 = Block(blockNumber,0);
     unordered_map<Block, unordered_map<int, int> >::const_iterator foundedTable = skiplistMap.find(block_0);
-
+#ifdef TESTING
+    cout << "Populate skiplist level 0 for block: " << blockNumber << " item index: " << itemIdx << endl;
+#endif
     if (foundedTable == skiplistMap.end()) {
      unordered_map<int, int> idxToCount;
      idxToCount.insert(pair<int, int> (itemIdx, 1));
@@ -39,6 +53,15 @@ void WRSS::populateSkipListLevel_0(int blockNumber, int itemIdx)
              blockItemMap.insert(pair<int, int> (itemIdx, 1));
      else
              blockItemMap.at(itemIdx) = blockItemMap.at(itemIdx) + 1;
+
+     skiplistMap[block_0] = blockItemMap;
+#ifdef TESTING
+     printf("block: %d level: 0 ", blockNumber);
+     cout << "blockItemMap contains: ";
+     for (auto it = blockItemMap.begin(); it != blockItemMap.end(); ++it )
+       cout << " " << it->first << ":" << it->second;
+     cout << endl;
+#endif
     }
 }
 
@@ -46,17 +69,67 @@ void WRSS::populateSkipListLevels(int blockNumber)
 {
      /* Level >=1 */
     for (int level = 1; level < computeBlockLevels(blockNumber); ++level) {
-       Block block = Block(blockNumber, level);
-       Block prevLevelBlock = Block(blockNumber, level -1);
-       Block prevBlock = Block(blockNumber -1, level -1);
+
+    	Block block = Block(blockNumber, level);
+    	Block prevLevelBlock = Block(blockNumber, level -1);
+    	Block prevBlock = Block(blockNumber - (1 << (level - 1)), level -1);
+#ifdef TESTING
+    	cout << "populateSkipListLevels block: " << blockNumber << "level: " << level;
+    	cout << " = " << "(" << prevLevelBlock.blockNumber << "," << prevLevelBlock.blockLevel << ")" << " +( " << prevBlock.blockNumber << "," << prevBlock.blockLevel << ")" << endl;
+#endif
         unordered_map<Block, unordered_map<int, int> >::const_iterator prevLevelTableItr = skiplistMap.find(prevLevelBlock);
         unordered_map<Block, unordered_map<int, int> >::const_iterator prevBlockTableItr = skiplistMap.find(prevBlock);
 
-        unordered_map<int, int> prevBlockTable = prevBlockTableItr->second;
+    	unordered_map<int, int> mergedblockTables;
 
-       unordered_map<int, int> mergedblockTables = prevLevelTableItr->second;
-       mergedblockTables.insert(prevBlockTable.begin(), prevBlockTable.end());
-       skiplistMap.insert(pair<Block, unordered_map<int, int> > (block, mergedblockTables)); // insert do nothing if the key already exist
+    	if ( prevBlockTableItr == skiplistMap.end() ) {
+    		if (prevLevelTableItr == skiplistMap.end()) {
+#ifdef TESTING
+    			cout << "BOTH prev block and prev level are empty!!" << endl;
+#endif
+    			continue;
+    		}
+#ifdef TESTING
+    		cout << "prev block table is empty but prev level is Not" << endl;
+#endif
+    		mergedblockTables = prevLevelTableItr->second;
+    	} else {
+
+    		mergedblockTables = prevBlockTableItr->second;
+
+#ifdef TESTING
+            cout << "prevBlockTable contains:";
+            for ( auto it = mergedblockTables.begin(); it != mergedblockTables.end(); ++it )
+            	cout << " " << it->first << ":" << it->second;
+            cout << endl;
+#endif
+    		if (prevLevelTableItr != skiplistMap.end()) {
+    			unordered_map<int, int> prevLevelTable = prevLevelTableItr->second;
+        		for (auto it = prevLevelTable.begin(); it != prevLevelTable.end(); ++it) {
+        			if (mergedblockTables.find(it->first) != mergedblockTables.end()) {
+        				int prevValue = mergedblockTables.find(it->first)->second;
+        				mergedblockTables[it->first] = prevValue + it->second;
+        			} else {
+        				mergedblockTables.insert(pair<int, int>(it->first, it->second));
+        			}
+        		}
+#ifdef TESTING
+                cout << "prevLevelTable contains:";
+                for ( auto it = prevLevelTable.begin(); it != prevLevelTable.end(); ++it )
+                	cout << " " << it->first << ":" << it->second;
+                cout << endl;
+#endif
+    		}
+
+    	}
+
+        skiplistMap.insert(pair<Block, unordered_map<int, int> > (block, mergedblockTables)); // insert do nothing if the key already exist
+#ifdef TESTING
+        cout << "mergedblockTables contains:";
+        for ( auto it = mergedblockTables.begin(); it != mergedblockTables.end(); ++it )
+        	cout << " " << it->first << ":" << it->second;
+        cout << endl;
+#endif
     }
 }
 
@@ -65,6 +138,7 @@ WRSS::WRSS(int windowSize, double gamma, int m, double epsilon)
     frameItems = 0;
     overflowsNumber = 0;
     tail = 0;
+    idx = 0;
     indexTail = 0;
     this->blockSize = ceil((windowSize * epsilon)/4); // W/k; k= 4/epsilon
     this->windowSize = windowSize;
@@ -84,7 +158,6 @@ WRSS::WRSS(int windowSize, double gamma, int m, double epsilon)
 
     /* Query Interval Section */
     skiplistSize = ceil(maxOverflows * log (maxOverflows));
-
 }
 
 WRSS::~WRSS()
@@ -103,16 +176,29 @@ double WRSS::computeOverflowCount(unsigned int item)
 
 void WRSS::update(unsigned int item, int wieght)
 {
+	++frameItems;
+#ifdef TESTING
+	cout << "*** UPDATE for frame: " << frameItems << "***" << endl;
+#endif
+	int blockNumber = (ceil((double)frameItems / (double)blockSize));
 
-	int blockNumber = floor(frameItems / blockSize);
+	blockNumber = blockNumber % (blocksNumber + 1);
 
-    if (((++frameItems) % blockSize) == 0) {
+	/* Last frame in the current block */
+    if ((frameItems % blockSize) == 0) {
+#ifdef TESTING
+    	cout << "NEW BLOCK! " << blockNumber << endl;
+#endif
         indexTail = (indexTail + 1) % indexSize;
         indexHead = (indexHead + 1) % indexSize;
         index->at(indexHead) = 0;
         // Populate previous block levels
-        if (blockNumber > 0)
-        	populateSkipListLevels(blockNumber - 1);
+        if (blockNumber > 1) {
+#ifdef TESTING
+        	cout << "populate levels of block number: " << blockNumber << endl;
+#endif
+        	populateSkipListLevels(blockNumber);
+        }
     }
 
     // Remove oldest element in oldest block 
@@ -136,12 +222,42 @@ void WRSS::update(unsigned int item, int wieght)
     this->rss->update(item, wieght);
     int currOverflowCount = computeOverflowCount(item);
 
-    // overflow
-    if (currOverflowCount > prevOverflowCount) {
+#ifdef TESTING
+    if (testArr[blockNumber -1]) {
+
+    	cout << "overflow for block number: " << blockNumber << endl;
+    	--testArr[blockNumber -1];
+
+        if (blockNumber == 1)
+        	firstOverflowed = item;
+        else if (blockNumber == 2 && testArr[blockNumber -1] == 1){
+        	secondtOverflowed = item;
+        } else if (blockNumber == 2 && testArr[blockNumber -1] == 0){
+        	thirdOverflowed = item;
+        } else if (blockNumber == 3) {
+        	item = firstOverflowed;
+        } else if (blockNumber == 4 && testArr[blockNumber -1] == 1) {
+        	item = firstOverflowed;
+        } else if (blockNumber == 4 && testArr[blockNumber -1] == 0) {
+        	fourthOverflowed = item;
+        } else if (blockNumber == 5 ) {
+        	item = secondtOverflowed;
+        } else if (blockNumber == 7) {
+        	item = thirdOverflowed;
+        }else if (blockNumber == 8) {
+        	sixthOverflowed = item;
+        }
     	printf("OVERFLOW!! %u %d  \n", item, wieght);
+#else
+    // overflow
+        if (currOverflowCount > prevOverflowCount) {
+#endif
         head = (head + 1) % maxOverflows;
         overflowsElements[head] = item;
-        idToIDx.insert(pair<int, int> (item, overflowsNumber));
+        if (idToIDx.find(item) == idToIDx.end()) {
+        	idToIDx.insert(pair<int, int> (item, idx));
+        	++idx;
+        }
         ++overflowsNumber;
         assert(overflowsNumber < maxOverflows);
         indexHead = (indexHead + 1) % indexSize;
@@ -152,7 +268,8 @@ void WRSS::update(unsigned int item, int wieght)
         else
             totalOverflows->at(item) = totalOverflows->at(item) + 1;
 
-        populateSkipListLevel_0(blockNumber, idToIDx.at(item));    }
+        populateSkipListLevel_0(blockNumber, idToIDx.at(item));
+    }
 
     // New frame
     if (frameItems == windowSize) {
@@ -165,10 +282,10 @@ double WRSS::query(unsigned int item)
 {
     int minOverFlows;
     double rssEstimation = this->rss->query(item);
-
+#ifdef TESTING
     printf("WRSS item: %u\n", item);
     printf("rssEstimation: %f \n", rssEstimation);
-
+#endif
     unordered_map<int,int>::const_iterator foundedItem = totalOverflows->find(item);
     if (foundedItem == totalOverflows->end()) // item has no oveflows
         minOverFlows = 0;
@@ -181,70 +298,90 @@ double WRSS::query(unsigned int item)
     return (this->threshold * (minOverFlows + 2 ) + rssEstimation);
 }
 
-double WRSS::partialIntervalQuery(int itemIdx, int secondBlock, int firstBlock)
+double WRSS::partialIntervalQuery(int itemIdx, int b2, int b1)
 {
-     int b = firstBlock;
+     int b = b1;
      double count = 0;
-     int d = (firstBlock - secondBlock) % blocksNumber;
-
+     unsigned int d = 1 + (b1 - b2) % (blocksNumber + 1);
+#ifdef TESTING
+     cout << "d: " << d << " b: " << b << endl;
+#endif
      while (d > 0) {
-             int level = min((computeBlockLevels(b) - 1), (int)floor(log(d)));
+    	 int level = min((computeBlockLevels(b) - 1), (int)floor(log2(d)));
 
-             Block block = Block(b,level);
-         unordered_map<Block, unordered_map<int, int> >::const_iterator foundedTable = skiplistMap.find(block);
+    	 Block block = Block(b,level);
+#ifdef TESTING
+    	 cout << "level: " << level << " block: " << b << endl;
+#endif
+    	 unordered_map<Block, unordered_map<int, int> >::const_iterator foundedTable = skiplistMap.find(block);
 
-         if (foundedTable == skiplistMap.end()) {
-             //TODO
-         } else {
-             unordered_map<int, int> blockItemMap = foundedTable->second;
-             unordered_map<int, int>::const_iterator foundedItem = blockItemMap.find(itemIdx);
+    	 if (foundedTable == skiplistMap.end()) {
+#ifdef TESTING
+    		 cout << "The item has not overflowed!! in block: " << block.blockNumber << " level: " << block.blockLevel << endl;
+#endif
+    	 } else {
+#ifdef TESTING
+    		 cout << "Overflowed item " << "block: " << b << "level: " << level << "d: " << d << endl;
+#endif
+    		 unordered_map<int, int> blockItemMap = foundedTable->second;
+    		 unordered_map<int, int>::const_iterator foundedItem = blockItemMap.find(itemIdx);
 
-             if(foundedItem == blockItemMap.end())
-                     //TODO
-                     printf("Not founded item\n");
-             else
-                     count +=blockItemMap.at(itemIdx);
-         }
+    		 if(foundedItem == blockItemMap.end()) {
+    			 //TODO
+				 printf("Not founded item at block: %d level: %d\n", block.blockNumber, block.blockLevel);
+    		 }
+    		 else
+				 count += blockItemMap.at(itemIdx);
+    	 }
 
+    	 d = d - (1 << level);
+    	 b = b - (1 << level);
 
-         d = d - pow(2, level); // TODO: change it to 0x01 << level
-         b = b - pow(2, level);
+    	 if (b == 0)
+    		 b = blocksNumber;
 
-         if (b == 0)
-             b = blocksNumber;
-
-     }
-
-     return count;
+     	 }
+     	 return count;
 }
 
-double WRSS::intervalQuery(unsigned int item, int b1, int b2)
+double WRSS::intervalQuery(unsigned int item, int b2, int b1)
 {
 
-	int firstBlock = (int) floor(b1 / blockSize) % (int) blocksNumber;
-	int secondBlock = (int) floor(b2 / blockSize) % (int) blocksNumber;
+	int firstBlock = (int) ceil((double) b2 / (double) blockSize) % (int) (blocksNumber + 1);
+	int secondBlock = (int) ceil((double) b1 / (double)blockSize) % (int) (blocksNumber + 1);
 	double minOverFlows = 0;
 	int itemIdx;
-
-	/*
+#ifdef TESTING
 	printf("item: %d\n", item);
-	printf("second block: %d first block: %d\n", secondBlock, firstBlock); */ //TODO: testing
-	 unordered_map<int,int>::const_iterator foundedItem = idToIDx.find(item);
-	 if (foundedItem == idToIDx.end()) // item has no overflows
-		 minOverFlows = 0;
-	 else {
+	printf("second block: %d first block: %d\n", secondBlock, firstBlock); //TODO: testing
+#endif
+	unordered_map<int,int>::const_iterator foundedItem = idToIDx.find(item);
+	if (foundedItem == idToIDx.end()) // item has no overflows
+		minOverFlows = 0;
+	else {
 		itemIdx = idToIDx.at(item);
-		minOverFlows = partialIntervalQuery(itemIdx, secondBlock, firstBlock);
-		/*
-		printf("itemIDx: %d\n", itemIdx);
-		printf("overflowed in second: %d \n", *((int *)overflowedArr + maxOverflows * secondBlock + itemIdx));
-		printf("overflowed in first: %d \n", *((int *)overflowedArr + maxOverflows * firstBlock + itemIdx));
-		*/ //TODO: testing
+		minOverFlows = partialIntervalQuery(itemIdx, firstBlock, secondBlock);
+#ifdef TESTING
+		cout << "number of overflow: " << minOverFlows << endl;
+#endif
 	}
-
-	 // printf("minoverflowed: %d \n", minOverFlows); //TODO: testing
-	 return threshold * (minOverFlows + 2 );
+	return threshold * (minOverFlows + 2 );
 }
 
-
+#ifdef TESTING
+double WRSS::testIntervalQuery(unsigned int b2, unsigned int b1)
+{
+	unsigned int overflowed = firstOverflowed;
+	unordered_map<int,int>::const_iterator foundedItem = idToIDx.find(overflowed);
+	if (foundedItem == idToIDx.end()) { // item has no overflows
+		cout << "item has no overflow: "<< overflowed << endl;
+		return 0;
+	}
+	else {
+		int itemIdx = idToIDx.at(overflowed);
+		cout << "item: " << overflowed << "overflowed at index: " << itemIdx << endl;
+		return intervalQuery(overflowed, b2, b1);
+	}
+}
+#endif
 

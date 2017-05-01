@@ -6,6 +6,7 @@ The main function for the two-dimensional HHH program
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <iostream>
 #include "hhh2RSS.hpp"
 #include <sys/timeb.h>
 
@@ -155,9 +156,8 @@ int main(int argc, char * argv[]) {
 		int w, x, y, z;
 		clock_t begint, endt;
 		struct timeb begintb, endtb;
-		unsigned long long ip, _ip;
 		unsigned * weights;
-		unsigned long long * data;
+		unsigned long * data;
 		FILE * fp = NULL;
 		int M = 65535;
 		float gamma = 4;
@@ -165,10 +165,10 @@ int main(int argc, char * argv[]) {
 		if (argc > 1) n = atoi(argv[1]);
 		if (argc > 2) counters = atoi(argv[2]);
 		if (argc > 3) threshold = atoi(argv[3]);
-		n = 1000000;
+		n = 32;
 		counters = 100;
 		threshold = 19531;
-		fp = fopen("/Users/ranashahout/Documents/workspace/eclipse_oxygen/wrss_cross/Chicago15Weighted.txt.1m.txt", "w");
+		fp = fopen("/Users/ranashahout/Documents/workspace/eclipse_oxygen/wrss_cross/Chicago15Weighted.txt.1m.txt", "r");
 
 		if (argc > 5) M = atoi(argv[5]);
 		if (argc > 6) gamma = atof(argv[6]);
@@ -178,27 +178,29 @@ int main(int argc, char * argv[]) {
 			return 0;
 		}
 
-		data = (unsigned long long *) malloc(sizeof(unsigned long long) * n);
+		data = (unsigned long *) malloc(sizeof(unsigned long) * n);
 		weights = (unsigned *) malloc(sizeof(unsigned) * n);
 
 		init((double)1/(double)counters, gamma, M);
 
+		int window_size = 32;
+		double epsilon = 0.5;
+
+		WRSS *wrss = new WRSS(window_size, gamma, M, epsilon);
 		for (i = 0; i < n; i++) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
-			ip = (unsigned long long)256*((unsigned long long)256*((unsigned long long)256*w + x) + y) + z;
+			data[i] = (unsigned long)256*((unsigned long)256*((unsigned long)256*w + x) + y) + z;
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
-			_ip = (unsigned long long)256*((unsigned long long)256*((unsigned long long)256*w + x) + y) + z;
-			data[i] = (ip << 32 | _ip);
 			fscanf(fp, "%d", weights+i);
 			//printf("weight = %d\n", weights[i] );
 		}
-
 		begint = clock();
 		ftime(&begintb);
 		#ifndef PARALLEL
 
         for (i = 0; i < n; i++)  {
-            update(data[i], weights[i]+40);
+            //update(data[i], weights[i]+40);
+            wrss->update(data[i] & masks[0], weights[i]);
         }
 
 		#else
@@ -213,9 +215,16 @@ int main(int argc, char * argv[]) {
 		//fprintf(fp, "%d pairs took %lfs %dB [%d counters] \n", n, time, memory, counters);
 
 		//for (i = 0; i < 4; i++) {
-            query(data[i]);
+        //    query(data[i]);
         //}
 
+#ifdef TESTING
+		double result = wrss->testIntervalQuery(3 , 8);
+		cout << "test interval query: " << result << endl;
+#else
+		double result = wrss->intervalQuery(data[0], 3, 8);
+		cout << "test interval query: " << result << endl;
+#endif
 		free(data);
 
 		return 0;

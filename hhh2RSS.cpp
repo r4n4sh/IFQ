@@ -43,8 +43,7 @@ Implementation of the 2-dimensional Hierarchical Heavy Hitters algorithm (HHH) f
 #define PIP(item) fprintf(stderr, "%3d.%3d.%3d.%3d", (int)(255&((item) >> 24)), (int)(255&((item) >> 16)), (int)(255&((item) >> 8)), (int)(255&((item) >> 0)))
 
 
-#define NAIVE_ALGO 1
-#define WRSS 1
+//#define NAIVE_ALGO 1
 //#define NUM_COUNTERS 16 //number of masks
 //#define MAX_DESCENDANTS 512 //maximum number of direct descendents of a given ip pair
 
@@ -56,7 +55,9 @@ int max(int a, int b) {return (a >= b ? a : b);}
 RSS_CPP * counters[NUM_COUNTERS];
 #endif
 
-WRSS *wrss;
+#ifdef WRSS
+BaseWRSS *wrss;
+#endif
 
 #ifdef NAIVE_ALGO
 NaiveWRSS * native_wrss;
