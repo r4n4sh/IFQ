@@ -29,7 +29,7 @@ The main function for the two-dimensional HHH program
 
 #define HIT 1
 #define BASE_WRSS_ALGO 1
-#define ACC 1
+//#define ACC 1
 //the masks
 LCLitem_t masks[NUM_COUNTERS] = {
 	//255.255.255.255
