@@ -172,9 +172,10 @@ int main(int argc, char * argv[]) {
 		double epsilon = 0.01;
 		int window_size = 1600;
 		int interval = 0;
+#ifdef TEST_QUERY
 		int interval_1 = 1 + interval;
 		int interval_2 = (window_size/2) - interval;
-
+#endif
 		for (int i = 1; i < argc; ++i)
 		{
 			if (strcmp(argv[i], "-np") == 0)

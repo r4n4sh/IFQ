@@ -108,8 +108,6 @@ double twototheminus(int k) {
 
 //initialise
 void init(double epsilon, float gamma, int M) {
-	int window_size = 1600;
-
 #ifdef RSS
 	//int i;
 	//for (i = 0; i < NUM_COUNTERS; i++)
