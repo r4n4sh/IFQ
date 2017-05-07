@@ -1,7 +1,7 @@
 #pragma once
 #pragma once
-#ifndef RSS_CPP_h
-#define RSS_CPP_h
+#ifndef RSS_CPP_h_rana
+#define RSS_CPP_h_rana
 #include "lossycount.hpp"
 #define RSS_HASHMULT 3
 #define UNDER_ESTIMATOR 0
@@ -15,7 +15,7 @@ struct rss_group
 {
 	LCUWT count;
 	RSSITEM *items;
-	RSSGROUP *previousg, *nextg;
+	RSSGROUP*previousg, *nextg;
 };
 
 struct rss_item

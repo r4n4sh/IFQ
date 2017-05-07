@@ -22,9 +22,14 @@ The main function for the two-dimensional HHH program
 #endif
 #endif
 
-#define INTERVAL_ALGO 1
-//#define BASE_WRSS_ALGO 1
-//#define INTERVAL_NAIVE_ALGO 1
+
+#define TEST_UPDATE 1
+//#define TEST_QUERY 1
+
+
+#define HIT 1
+#define BASE_WRSS_ALGO 1
+#define ACC 1
 //the masks
 LCLitem_t masks[NUM_COUNTERS] = {
 	//255.255.255.255
@@ -150,7 +155,7 @@ LCLitem_t masks[NUM_COUNTERS] = {
 double dblmainmax(double a, double b) {return (a >= b ? a : b);}
 
 int main(int argc, char * argv[]) {
-		double counters = 100;
+		int counters = 100;
 		int threshold = 1000;
 		int n = 100000;
 		double time;
@@ -164,35 +169,121 @@ int main(int argc, char * argv[]) {
 		FILE * fp = NULL;
 		int M = 65535;
 		float gamma = 4;
+		double epsilon = 0.01;
+		int window_size = 1600;
+		int interval = 0;
+		int interval_1 = 1 + interval;
+		int interval_2 = (window_size/2) - interval;
 
-		if (argc > 1) n = atoi(argv[1]);
-		if (argc > 2) counters = atoi(argv[2]);
-		if (argc > 3) threshold = atoi(argv[3]);
-		n = 32;
-		counters = 100;
-		threshold = 19531;
-		fp = fopen("/Users/ranashahout/Documents/workspace/eclipse_oxygen/wrss_cross/Chicago15Weighted.txt.1m.txt", "r");
+		for (int i = 1; i < argc; ++i)
+		{
+			if (strcmp(argv[i], "-np") == 0)
+			{
+				i++;
+				if (i >= argc)
+				{
+					std::cout << "Missing number of packets." << std::endl;
+					return -1;
+				}
+				n = atoi(argv[i]);
+			}
+			else if (strcmp(argv[i], "-c") == 0)
+			{
+				i++;
+				if (i >= argc)
+				{
+					std::cout  << "Missing epsilon" << std::endl;
+					return -1;
+				}
+				counters = atoi(argv[i]);
+			}
+			else if (strcmp(argv[i], "-t") == 0)
+			{
+				i++;
+				if (i >= argc)
+				{
+					std::cout << "Missing threshold." << std::endl;
+					return -1;
+				}
+				threshold = atoi(argv[i]);
+			}
+			else if (strcmp(argv[i], "-f") == 0)
+			{
+				i++;
+				if (i >= argc)
+				{
+					std::cout << "Missing trace file." << std::endl;
+					return -1;
+				}
+				fp = fopen(argv[4], "w");
+			}
 
-		if (argc > 5) M = atoi(argv[5]);
-		if (argc > 6) gamma = atof(argv[6]);
+			else if (strcmp(argv[i], "-gamma") == 0)
+			{
+				i++;
+				if (i >= argc)
+				{
+					std::cout << "Missing gamma." << std::endl;
+					return -1;
+				}
+				gamma = atof(argv[i]);
+			}
+			else if (strcmp(argv[i], "-M") == 0)
+			{
+				i++;
+				if (i >= argc)
+				{
+					std::cout << "Missing M." << std::endl;
+					return -1;
+				}
+				M = atoi(argv[i]);
+			}
+			else if (strcmp(argv[i], "-w") == 0)
+			{
+				i++;
+				if (i >= argc)
+				{
+					std::cout << "Missing window size." << std::endl;
+					return -1;
+				}
 
-		if(n/counters >= threshold) {
+				window_size = atoi(argv[i]);
+			}
+			else if (strcmp(argv[i], "-i") == 0)
+			{
+				i++;
+				if (i >= argc)
+				{
+					std::cout << "Missing interval." << std::endl;
+					return -1;
+				}
+
+				interval = atoi(argv[i]);
+			}
+			else
+			{
+				cout << "Unknown parameter" << argv[i] << endl;
+				return -1;
+			}
+		}
+
+
+		if(n / counters >= threshold) {
 			printf("Unacceptable parameters: eps*n >= theshold\n");
 			return 0;
 		}
-
+		epsilon = (double)1/(double)counters;
 		data = (unsigned long *) malloc(sizeof(unsigned long) * n);
 		weights = (unsigned *) malloc(sizeof(unsigned) * n);
 
-		int window_size = 32;
-		double epsilon = 0.5;
-#ifdef INTERVAL_ALGO
+
+#ifdef HIT
 		WRSS *wrss = new WRSS(window_size, gamma, M, epsilon);
 #endif
 #ifdef BASE_WRSS_ALGO
 		BaseWRSS *bwrss = new BaseWRSS(window_size, gamma, M, epsilon);
 #endif
-#ifdef INTERVAL_NAIVE_ALGO
+#ifdef ACC
 		NaiveWRSS *nwrss = new NaiveWRSS(window_size, gamma, M, epsilon);
 #endif
 		for (i = 0; i < n; i++) {
@@ -201,74 +292,120 @@ int main(int argc, char * argv[]) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			fscanf(fp, "%d", weights+i);
 		}
+#ifdef TEST_UPDATE
+#ifdef HIT
 		begint = clock();
 		ftime(&begintb);
-		#ifndef PARALLEL
-
         for (i = 0; i < n; i++)  {
-#ifdef INTERVAL_ALGO
             wrss->update(data[i] & masks[0], weights[i]);
-#endif
-#ifdef BASE_WRSS_ALGO
-            bwrss->update(data[i] & masks[0], weights[i]);
-#endif
-#ifdef INTERVAL_NAIVE_ALGO
-            nwrss->update(data[i] & masks[0], weights[i]);
-#endif
         }
 
-		#else
-		#endif
 		endt = clock();
 		ftime(&endtb);
 
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
-		
-		printf( "%d update pairs took %lfs %dB [%f counters]\n", n, time, memory, counters);
 
+		printf( "./hhh2RSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+#endif
+
+#ifdef ACC
 		begint = clock();
 		ftime(&begintb);
-		#ifndef PARALLEL
 
         for (i = 0; i < n; i++)  {
-#ifdef INTERVAL_ALGO
-            wrss->intervalQuery(data[i] & masks[0], 1, window_size);
-#endif
-#ifdef BASE_WRSS_ALGO
-            bwrss->query(data[i] & masks[0]);
-#endif
-#ifdef INTERVAL_NAIVE_ALGO
-            nwrss->intervalQuery(data[i] & masks[0], 1, window_size);
-#endif
+            nwrss->update(data[i] & masks[0], weights[i]);
         }
 
-		#else
-		#endif
 		endt = clock();
 		ftime(&endtb);
 
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
 
-		printf( "%d query pairs took %lfs %dB [%f counters]\n", n, time, memory, counters);
-#ifdef INTERVAL_ALGO
-#ifdef TESTING
-		double result = wrss->testIntervalQuery(3 , 8);
-		cout << "test interval query: " << result << endl;
-#else
-		double result = wrss->intervalQuery(data[0], 3, 8);
-		cout << "test interval query: " << result << endl;
+		printf( "./acc %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+#endif
+
+
+#ifdef BASE_WRSS_ALGO
+		begint = clock();
+		ftime(&begintb);
+
+        for (i = 0; i < n; i++)  {
+        	bwrss->update(data[i] & masks[0], weights[i]);
+        }
+
+		endt = clock();
+		ftime(&endtb);
+
+		time = ((double)(endt-begint))/CLK_PER_SEC;
+		memory = maxmemusage();
+
+		printf( "./baseWRSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+#endif
+#endif
+
+#ifdef TEST_QUERY
+		/* Test Query times */
+#ifdef HIT
+		begint = clock();
+		ftime(&begintb);
+        for (i = 0; i < n; i++)  {
+            wrss->intervalQuery(data[i] & masks[0], interval_1, interval_2);
+        }
+
+		endt = clock();
+		ftime(&endtb);
+
+		time = ((double)(endt-begint))/CLK_PER_SEC;
+		memory = maxmemusage();
+
+		printf( "./hhh2RSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+#endif
+
+#ifdef ACC
+		begint = clock();
+		ftime(&begintb);
+
+        for (i = 0; i < n; i++)  {
+            nwrss->intervalQuery(data[i] & masks[0], interval_1, interval_2);
+        }
+
+		endt = clock();
+		ftime(&endtb);
+
+		time = ((double)(endt-begint))/CLK_PER_SEC;
+		memory = maxmemusage();
+
+		printf( "./acc %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+#endif
+
+
+#ifdef BASE_WRSS_ALGO
+		begint = clock();
+		ftime(&begintb);
+
+        for (i = 0; i < n; i++)  {
+            bwrss->query(data[i] & masks[0]);
+        }
+
+		endt = clock();
+		ftime(&endtb);
+
+		time = ((double)(endt-begint))/CLK_PER_SEC;
+		memory = maxmemusage();
+
+		printf( "./baseWRSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
 #endif
 		free(data);
-#ifdef INTERVAL_NAIVE_ALGO
+#ifdef ACC
 		free(nwrss);
 #endif
 #ifdef BASE_WRSS_ALGO
 		free(bwrss);
 #endif
-#ifdef INTERVAL_ALGO
+#ifdef HIT
 		free(wrss);
 #endif
 		return 0;

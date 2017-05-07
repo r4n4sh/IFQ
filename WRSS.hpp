@@ -15,7 +15,7 @@
 
 #include "RSS_CPP.hpp"
 
-//#define TESTING 1
+//#define DEBUGGING 1
 
 using namespace std;
 
@@ -58,47 +58,46 @@ struct hash<Block>
 
 class WRSS {
 public:
-    WRSS(int windowSize, double gamma, int m, double epsilon);
+    WRSS(unsigned int windowSize, float gamma, unsigned int m, float epsilon);
     ~WRSS();
     void update(unsigned int item, int wieght);
     double query(unsigned int item);
     /* Query Interval Section */
     double intervalQuery(unsigned int item, int b1, int b2);
-#ifdef TESTING
+#ifdef DEBUGGING
     double testIntervalQuery(unsigned int b2, unsigned int b1);
 #endif
 private:
-    int frameItems;
-    int blockSize;
-    int windowSize;
-    int blocksNumber;
+    unsigned int frameItems;
+    unsigned int blockSize;
+    unsigned int windowSize;
+    unsigned int blocksNumber;
     vector<int> *index;
-    int tail;
-    int overflowsNumber;
-    int idx;
-    int indexTail;
-    int head;
-    int indexHead;
-    unordered_map<int, int> *totalOverflows; //B
+    unsigned int tail;
+    unsigned int overflowsNumber;
+    unsigned int idx;
+    unsigned int indexTail;
+    unsigned int head;
+    unsigned int indexHead;
+    unordered_map<unsigned int, unsigned int> *totalOverflows; //B
     unsigned int *overflowsElements;// b
     RSS_CPP *rss;
-    int indexSize;
-    int maxOverflows;
+    unsigned int indexSize;
+    unsigned int maxOverflows;
     double epsilon;
-    double threshold;
+    unsigned int threshold;
     int m; //maximal value of an element in the stream
-    //double alpha = 0.2;
-    double gamma;
+
     double computeOverflowCount(unsigned int item);
 
     /* Query Interval Section */
-    void populateSkipListLevel_0(int blockNumber, int itemIdx);
-    void populateSkipListLevels(int blockNumber);
-    double partialIntervalQuery(int itemIdx, int secondBlock, int firstBlock);
+    void populateSkipListLevel_0(unsigned int blockNumber, unsigned int itemIdx);
+    void populateSkipListLevels(unsigned int blockNumber);
+    double partialIntervalQuery(unsigned int itemIdx, unsigned int secondBlock, unsigned int firstBlock);
 
-    int skiplistSize;
-    unordered_map<int, int> idToIDx;
-    unordered_map<Block, unordered_map<int, int> > skiplistMap;
+    unsigned int skiplistSize;
+    unordered_map<unsigned int, unsigned int> idToIDx;
+    unordered_map<Block, unordered_map<unsigned int, unsigned int> > skiplistMap;
 };
 
 #endif /* WRSS_hpp */

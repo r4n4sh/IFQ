@@ -30,10 +30,10 @@ RSS_CPP::RSS_CPP(float fPhi, int M, float gamma)
 	//std::cout << "M = " << M << std::endl;
 	m_M = M;
 	m_gamma = gamma;
-	m_stepSize = 1 + M * gamma / 2;
+	m_stepSize =  1 + ceil(M/ 2.* gamma) ;
 	m_stepSizeMinusOne = m_stepSize - 1;
 	if (m_stepSize <= 0)
-		;//throw std::exception::exception("bad config, make sure gamma >= 0");
+		//throw std::exception::exception("bad config, make sure gamma >= 0");
 	assert(m_stepSize);
 	assert(gamma > 0);
 	m_nrCounters *= (1 + gamma);
@@ -174,7 +174,7 @@ void RSS_CPP::advanceCounter(RSSITEM &il, unsigned int nrIncs) {
 	assert(group.count <= goalVal);
 
 	if (group.count == goalVal) {
-		putInNewGroup(il, group); // if the goal group exists	
+		putInNewGroup(il, group); // if the goal group exists
 		return;
 	}
 	newGroup(il, group, goalVal);
@@ -207,7 +207,7 @@ inline void RSS_CPP::removeFromHash(RSSITEM & il) {
 	// if il was first - the chain will point on the next item.
 	if (m_hashtable[il.hash] == &il)
 		m_hashtable[il.hash] = il.nexti;
-	// if there is another node with the same hash. 
+	// if there is another node with the same hash.
 	if (il.nexti)
 	{
 		// next item - previous - points to my previous.
@@ -283,15 +283,15 @@ unsigned int const RSS_CPP::query(unsigned int x) {
 	if (il){
 		if (il->delta == -1)
 			return il->parentg->count * m_stepSize + il->remainder;
-		return il->parentg->count * m_stepSize + il->remainder - (il->delta + 1)*m_stepSize - 1;
+		return il->parentg->count * m_stepSize + il->remainder -(il->delta + 1)*m_stepSize - 1;
 	}
 	if (UNDER_ESTIMATOR)
 		return 0;
 	int minCount = m_root->count;
-	// if all counters are used. 
+	// if all counters are used.
 	if (minCount)
 		return minCount * m_stepSize - 1;
-	// if there are unused counters and x does not have a counter, we are certain that x never arrived. 
+	// if there are unused counters and x does not have a counter, we are certain that x never arrived.
 	return 0;
 }
 
@@ -384,7 +384,7 @@ inline void RSS_CPP::recycleGroup(RSSGROUP & oldgroup)
 
 	//recycle oldgroup.
 	m_freegroups[--m_gpt] = &oldgroup;
-	// if we have created an empty group, remove it 
+	// if we have created an empty group, remove it
 	assert(m_root->nextg != m_root);
 }
 
