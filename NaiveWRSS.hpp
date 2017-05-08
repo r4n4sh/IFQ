@@ -27,8 +27,8 @@ public:
 private:
     int frameItems;
     int blockSize;
-    int windowSize;
-    int blocksNumber;
+    unsigned int windowSize;
+    unsigned int blocksNumber;
     vector<int> *index;
     int tail;
     int overflowsNumber;
@@ -41,7 +41,7 @@ private:
     int indexSize;
     int maxOverflows;
     float epsilon;
-    double threshold;
+    unsigned int threshold;
     int m; //maximal value of an element in the stream
     //double alpha = 0.2;
     float gamma;

@@ -108,6 +108,7 @@ double twototheminus(int k) {
 
 //initialise
 void init(double epsilon, float gamma, int M) {
+
 #ifdef RSS
 	//int i;
 	//for (i = 0; i < NUM_COUNTERS; i++)
@@ -116,7 +117,7 @@ void init(double epsilon, float gamma, int M) {
 #endif
 #ifdef WRSS
 	printf("Creating WRSS\n");
-	wrss = new WRSS(window_size, gamma, M, epsilon);
+	wrss = new HIT(window_size, gamma, M, epsilon);
 #endif
 #ifdef NAIVE_ALGO
 	window_size = 1600;

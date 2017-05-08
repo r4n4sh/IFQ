@@ -7,6 +7,7 @@ The main function for the two-dimensional HHH program
 #include <stdlib.h>
 #include <time.h>
 #include <iostream>
+#include <unistd.h>
 #include "hhh2RSS.hpp"
 #include <sys/timeb.h>
 
@@ -27,9 +28,9 @@ The main function for the two-dimensional HHH program
 //#define TEST_QUERY 1
 
 
-#define HIT 1
+#define HIT_TESTING 1
 #define BASE_WRSS_ALGO 1
-//#define ACC 1
+#define ACC 1
 //the masks
 LCLitem_t masks[NUM_COUNTERS] = {
 	//255.255.255.255
@@ -278,8 +279,8 @@ int main(int argc, char * argv[]) {
 		weights = (unsigned *) malloc(sizeof(unsigned) * n);
 
 
-#ifdef HIT
-		WRSS *wrss = new WRSS(window_size, gamma, M, epsilon);
+#ifdef HIT_TESTING
+		HIT *hit = new HIT(window_size, gamma, M, epsilon);
 #endif
 #ifdef BASE_WRSS_ALGO
 		BaseWRSS *bwrss = new BaseWRSS(window_size, gamma, M, epsilon);
@@ -294,11 +295,11 @@ int main(int argc, char * argv[]) {
 			fscanf(fp, "%d", weights+i);
 		}
 #ifdef TEST_UPDATE
-#ifdef HIT
+#ifdef HIT_TESTING
 		begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            wrss->update(data[i] & masks[0], weights[i]);
+            hit->update(data[i] & masks[0], weights[i]);
         }
 
 		endt = clock();
@@ -309,6 +310,8 @@ int main(int argc, char * argv[]) {
 
 		printf( "./hhh2RSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
+
+		usleep(1000);
 
 #ifdef ACC
 		begint = clock();
@@ -327,7 +330,7 @@ int main(int argc, char * argv[]) {
 		printf( "./acc %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
 
-
+		usleep(1000);
 #ifdef BASE_WRSS_ALGO
 		begint = clock();
 		ftime(&begintb);
@@ -344,15 +347,16 @@ int main(int argc, char * argv[]) {
 
 		printf( "./baseWRSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
+		usleep(1000);
 #endif
 
 #ifdef TEST_QUERY
 		/* Test Query times */
-#ifdef HIT
+#ifdef HIT_TESTING
 		begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            wrss->intervalQuery(data[i] & masks[0], interval_1, interval_2);
+            hit->intervalQuery(data[i] & masks[0], interval_1, interval_2);
         }
 
 		endt = clock();
@@ -406,8 +410,8 @@ int main(int argc, char * argv[]) {
 #ifdef BASE_WRSS_ALGO
 		free(bwrss);
 #endif
-#ifdef HIT
-		free(wrss);
+#ifdef HIT_TESTING
+		free(hit);
 #endif
 		return 0;
 }

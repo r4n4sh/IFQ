@@ -14,7 +14,7 @@
 
 #include "prng.hpp"
 #include "RSS_CPP.hpp"
-#include "WRSS.hpp"
+#include "HIT.hpp"
 #include "NaiveWRSS.hpp"
 #include "BaseWRSS.hpp"
 //make sure we are passing the right #def around
