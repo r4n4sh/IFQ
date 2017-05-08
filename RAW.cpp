@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <iostream>
 #include "RAW.hpp"
 
 RAW::RAW(unsigned int windowSize, float gamma, unsigned int m, float epsilon)

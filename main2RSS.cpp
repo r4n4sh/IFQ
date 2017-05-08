@@ -27,9 +27,9 @@ The main function for the two-dimensional HHH program
 //#define TEST_QUERY 1
 
 
-#define HIT_TESTING 1
-#define BASE_WRSS_ALGO 1
-#define ACC_TESTING 1
+//#define HIT_TESTING 1
+//#define BASE_WRSS_ALGO 1
+//#define ACC_TESTING 1
 #define RAW_TESING 1
 //the masks
 LCLitem_t masks[NUM_COUNTERS] = {
@@ -168,7 +168,7 @@ int main(int argc, char * argv[]) {
 		unsigned * weights;
 		unsigned long * data;
 		FILE * fp = NULL;
-		int M = 65535;
+		int M = 1;
 		float gamma = 4;
 		double epsilon = 0.01;
 		int window_size = 1600;
@@ -302,7 +302,7 @@ int main(int argc, char * argv[]) {
 		begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            hit->update(data[i] & masks[0], weights[i]);
+            hit->update(data[i] & masks[0], 1);
         }
 
 		endt = clock();
@@ -319,7 +319,7 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
-            acc->update(data[i] & masks[0], weights[i]);
+            acc->update(data[i] & masks[0], 1);
         }
 
 		endt = clock();
@@ -336,7 +336,7 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
-        	bwrss->update(data[i] & masks[0], weights[i]);
+        	bwrss->update(data[i] & masks[0], 1);
         }
 
 		endt = clock();
@@ -352,7 +352,7 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
-        	raw->update(data[i] & masks[0], weights[i]);
+        	raw->update(data[i] & masks[0], 1);
         }
 
 		endt = clock();
