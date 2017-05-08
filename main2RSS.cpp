@@ -7,7 +7,6 @@ The main function for the two-dimensional HHH program
 #include <stdlib.h>
 #include <time.h>
 #include <iostream>
-#include <unistd.h>
 #include "hhh2RSS.hpp"
 #include <sys/timeb.h>
 
@@ -31,6 +30,7 @@ The main function for the two-dimensional HHH program
 #define HIT_TESTING 1
 #define BASE_WRSS_ALGO 1
 #define ACC_TESTING 1
+#define RAW_TESING 1
 //the masks
 LCLitem_t masks[NUM_COUNTERS] = {
 	//255.255.255.255
@@ -288,6 +288,9 @@ int main(int argc, char * argv[]) {
 #ifdef ACC_TESTING
 		ACC *acc = new ACC(window_size, gamma, M, epsilon);
 #endif
+#ifdef RAW_TESING
+		RAW *raw = new RAW(window_size, gamma, M, epsilon);
+#endif
 		for (i = 0; i < n; i++) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			data[i] = (unsigned long)256*((unsigned long)256*((unsigned long)256*w + x) + y) + z;
@@ -311,8 +314,6 @@ int main(int argc, char * argv[]) {
 		printf( "./hhh2RSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
 
-		usleep(1000);
-
 #ifdef ACC_TESTING
 		begint = clock();
 		ftime(&begintb);
@@ -330,7 +331,6 @@ int main(int argc, char * argv[]) {
 		printf( "./acc %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
 
-		usleep(1000);
 #ifdef BASE_WRSS_ALGO
 		begint = clock();
 		ftime(&begintb);
@@ -347,7 +347,22 @@ int main(int argc, char * argv[]) {
 
 		printf( "./baseWRSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
-		usleep(1000);
+#ifdef RAW_TESING
+		begint = clock();
+		ftime(&begintb);
+
+        for (i = 0; i < n; i++)  {
+        	raw->update(data[i] & masks[0], weights[i]);
+        }
+
+		endt = clock();
+		ftime(&endtb);
+
+		time = ((double)(endt-begint))/CLK_PER_SEC;
+		memory = maxmemusage();
+
+		printf( "./raw %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+#endif
 #endif
 
 #ifdef TEST_QUERY
@@ -385,7 +400,6 @@ int main(int argc, char * argv[]) {
 		printf( "./acc %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
 
-
 #ifdef BASE_WRSS_ALGO
 		begint = clock();
 		ftime(&begintb);
@@ -402,8 +416,28 @@ int main(int argc, char * argv[]) {
 
 		printf( "./baseWRSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
+
+#ifdef RAW_TESTING
+		begint = clock();
+		ftime(&begintb);
+
+        for (i = 0; i < n; i++)  {
+            raw->intervalQuery(data[i] & masks[0], interval_1, interval_2);
+        }
+
+		endt = clock();
+		ftime(&endtb);
+
+		time = ((double)(endt-begint))/CLK_PER_SEC;
+		memory = maxmemusage();
+
+		printf( "./raw %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+#endif
 #endif
 		free(data);
+#ifdef RAW_TESING
+		free(raw);
+#endif
 #ifdef ACC_TESTING
 		free(acc);
 #endif

@@ -17,6 +17,7 @@
 #include "HIT.hpp"
 #include "ACC.hpp"
 #include "BaseWRSS.hpp"
+#include "RAW.hpp"
 //make sure we are passing the right #def around
 #ifndef DIMENSION2
 #error Invalid dimension
