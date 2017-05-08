@@ -1,12 +1,12 @@
 /*
- * NaiveWRSS.hpp
+ * ACC.hpp
  *
  *  Created on: Apr 12, 2017
  *      Author: ranashahout
  */
 
-#ifndef NAIVEWRSS_HPP_
-#define NAIVEWRSS_HPP_
+#ifndef ACC_HPP_
+#define ACC_HPP_
 
 #include <stdio.h>
 #include <unordered_map>
@@ -16,10 +16,10 @@
 
 using namespace std;
 
-class NaiveWRSS {
+class ACC {
 public:
-	NaiveWRSS(unsigned int windowSize, float gamma, unsigned int m, float epsilon);
-    ~NaiveWRSS();
+	ACC(unsigned int windowSize, float gamma, unsigned int m, float epsilon);
+    ~ACC();
     void update(unsigned int item, int wieght);
     double query(unsigned int item);
     double intervalQuery(unsigned int item, int b1, int b2);
@@ -53,4 +53,4 @@ private:
 };
 
 
-#endif /* NAIVEWRSS_HPP_ */
+#endif /* ACC_HPP_ */

@@ -30,7 +30,7 @@ The main function for the two-dimensional HHH program
 
 #define HIT_TESTING 1
 #define BASE_WRSS_ALGO 1
-#define ACC 1
+#define ACC_TESTING 1
 //the masks
 LCLitem_t masks[NUM_COUNTERS] = {
 	//255.255.255.255
@@ -285,8 +285,8 @@ int main(int argc, char * argv[]) {
 #ifdef BASE_WRSS_ALGO
 		BaseWRSS *bwrss = new BaseWRSS(window_size, gamma, M, epsilon);
 #endif
-#ifdef ACC
-		NaiveWRSS *nwrss = new NaiveWRSS(window_size, gamma, M, epsilon);
+#ifdef ACC_TESTING
+		ACC *acc = new ACC(window_size, gamma, M, epsilon);
 #endif
 		for (i = 0; i < n; i++) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
@@ -313,12 +313,12 @@ int main(int argc, char * argv[]) {
 
 		usleep(1000);
 
-#ifdef ACC
+#ifdef ACC_TESTING
 		begint = clock();
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
-            nwrss->update(data[i] & masks[0], weights[i]);
+            acc->update(data[i] & masks[0], weights[i]);
         }
 
 		endt = clock();
@@ -368,12 +368,12 @@ int main(int argc, char * argv[]) {
 		printf( "./hhh2RSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
 
-#ifdef ACC
+#ifdef ACC_TESTING
 		begint = clock();
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
-            nwrss->intervalQuery(data[i] & masks[0], interval_1, interval_2);
+            acc->intervalQuery(data[i] & masks[0], interval_1, interval_2);
         }
 
 		endt = clock();
@@ -404,8 +404,8 @@ int main(int argc, char * argv[]) {
 #endif
 #endif
 		free(data);
-#ifdef ACC
-		free(nwrss);
+#ifdef ACC_TESTING
+		free(acc);
 #endif
 #ifdef BASE_WRSS_ALGO
 		free(bwrss);

@@ -60,7 +60,7 @@ BaseWRSS *wrss;
 #endif
 
 #ifdef NAIVE_ALGO
-NaiveWRSS * native_wrss;
+ACC * native_wrss;
 #endif
 //The masks associated with the counters
 //Note that we must ensure that they are in increasing order of generality
@@ -122,7 +122,7 @@ void init(double epsilon, float gamma, int M) {
 #ifdef NAIVE_ALGO
 	window_size = 1600;
 	epsilon = 0.01;
-	native_wrss = new NaiveWRSS(window_size, gamma, M, epsilon);
+	native_wrss = new ACC(window_size, gamma, M, epsilon);
 #endif
 }
 
