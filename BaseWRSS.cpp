@@ -31,7 +31,7 @@ BaseWRSS::BaseWRSS(unsigned int windowSize, float gamma, unsigned int m, float e
     index = new vector<int> (indexSize); // 0 means end of block
     overflowsElements = new unsigned int[maxOverflows];
     rss = new RSS_CPP(epsilon, m, gamma);//y
-    threshold = windowSize*m*epsilon / 4.f; // W*M/k
+    threshold = ceil(windowSize*m*epsilon / 4.f); // W*M/k
     totalOverflows = new unordered_map<unsigned int, unsigned int> (maxOverflows);//B TODO: allocate static?
 }
 

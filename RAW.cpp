@@ -19,7 +19,7 @@ RAW::RAW(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     this->m = m;
     this->epsilon = epsilon;
     maxOverflows = min(blocksNumber * 2, windowSize);
-    threshold = windowSize*m*epsilon / 4.; // W*M/k
+    threshold = ceil(windowSize*m*epsilon / 4.f); // W*M/k
 
     windows = new BaseWRSS*[blocksNumber];
     for (int i = 0; i < blocksNumber; i++)
