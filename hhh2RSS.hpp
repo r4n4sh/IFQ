@@ -16,6 +16,7 @@
 #include "RSS_CPP.hpp"
 #include "HIT.hpp"
 #include "ACC.hpp"
+#include "ACC1.hpp"
 #include "BaseWRSS.hpp"
 #include "RAW.hpp"
 //make sure we are passing the right #def around

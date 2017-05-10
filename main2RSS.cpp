@@ -27,10 +27,11 @@ The main function for the two-dimensional HHH program
 //#define TEST_QUERY 1
 
 
-//#define HIT_TESTING 1
+#define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
 //#define ACC_TESTING 1
-#define RAW_TESING 1
+//#define ACC1_TESTING 1
+//#define RAW_TESING 1
 //the masks
 LCLitem_t masks[NUM_COUNTERS] = {
 	//255.255.255.255
@@ -291,6 +292,9 @@ int main(int argc, char * argv[]) {
 #ifdef RAW_TESING
 		RAW *raw = new RAW(window_size, gamma, M, epsilon);
 #endif
+#ifdef ACC1_TESTING
+		ACC1 *acc1 = new ACC1(window_size, gamma, M, epsilon);
+#endif
 		for (i = 0; i < n; i++) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			data[i] = (unsigned long)256*((unsigned long)256*((unsigned long)256*w + x) + y) + z;
@@ -363,6 +367,23 @@ int main(int argc, char * argv[]) {
 
 		printf( "./raw %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
+
+#ifdef ACC1_TESTING
+		begint = clock();
+		ftime(&begintb);
+
+        for (i = 0; i < n; i++)  {
+            acc1->update(data[i] & masks[0], 1);
+        }
+
+		endt = clock();
+		ftime(&endtb);
+
+		time = ((double)(endt-begint))/CLK_PER_SEC;
+		memory = maxmemusage();
+
+		printf( "./acc1 %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+#endif
 #endif
 
 #ifdef TEST_QUERY
@@ -433,8 +454,27 @@ int main(int argc, char * argv[]) {
 
 		printf( "./raw %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
+#ifdef ACC1_TESTING
+		begint = clock();
+		ftime(&begintb);
+
+        for (i = 0; i < n; i++)  {
+            acc1->intervalQuery(data[i] & masks[0], interval_1, interval_2);
+        }
+
+		endt = clock();
+		ftime(&endtb);
+
+		time = ((double)(endt-begint))/CLK_PER_SEC;
+		memory = maxmemusage();
+
+		printf( "./acc1 %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+#endif
 #endif
 		free(data);
+#ifdef ACC1_TESTING
+		free(acc1);
+#endif
 #ifdef RAW_TESING
 		free(raw);
 #endif
