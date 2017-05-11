@@ -23,8 +23,8 @@ The main function for the two-dimensional HHH program
 #endif
 
 
-#define TEST_UPDATE 1
-//#define TEST_QUERY 1
+//#define TEST_UPDATE 1
+#define TEST_QUERY 1
 
 
 #define HIT_TESTING 1
@@ -389,6 +389,10 @@ int main(int argc, char * argv[]) {
 #ifdef TEST_QUERY
 		/* Test Query times */
 #ifdef HIT_TESTING
+        for (i = 0; i < n; i++)  {
+            hit->update(data[i] & masks[0], 1);
+        }
+
 		begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
@@ -405,6 +409,10 @@ int main(int argc, char * argv[]) {
 #endif
 
 #ifdef ACC_TESTING
+        for (i = 0; i < n; i++)  {
+            acc->update(data[i] & masks[0], 1);
+        }
+
 		begint = clock();
 		ftime(&begintb);
 
@@ -422,6 +430,10 @@ int main(int argc, char * argv[]) {
 #endif
 
 #ifdef BASE_WRSS_ALGO
+        for (i = 0; i < n; i++)  {
+        	bwrss->update(data[i] & masks[0], 1);
+        }
+
 		begint = clock();
 		ftime(&begintb);
 
@@ -439,6 +451,10 @@ int main(int argc, char * argv[]) {
 #endif
 
 #ifdef RAW_TESTING
+        for (i = 0; i < n; i++)  {
+        	raw->update(data[i] & masks[0], 1);
+        }
+
 		begint = clock();
 		ftime(&begintb);
 
@@ -455,6 +471,10 @@ int main(int argc, char * argv[]) {
 		printf( "./raw %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
 #ifdef ACC1_TESTING
+        for (i = 0; i < n; i++)  {
+            acc1->update(data[i] & masks[0], 1);
+        }
+
 		begint = clock();
 		ftime(&begintb);
 
