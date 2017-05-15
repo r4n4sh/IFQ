@@ -49,7 +49,7 @@ private:
 
     /* Naive Algorithm */
     unordered_map<int, int> idToIDx;
-    int** overflowedArr;
+    unordered_map<unsigned int, unsigned int> **overflowedArr;
 };
 
 

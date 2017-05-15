@@ -52,9 +52,9 @@ double RAW::intervalQuery(unsigned int item, int b1, int b2)
 	int windowidx2 = ceil((windowSize - secondBlock)/ blockSize);
 
 	if (windowidx2 > windowidx1)
-		return windows[windowidx2]->query(item) - windows[windowidx1]->query(item);
+		return (windows[windowidx2]->query(item) - windows[windowidx1]->query(item)) + threshold ;
 	else
-		return windows[windowidx1]->query(item) - windows[windowidx2]->query(item);
+		return (windows[windowidx1]->query(item) - windows[windowidx2]->query(item)) + threshold;
 }
 
 

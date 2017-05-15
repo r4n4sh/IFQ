@@ -23,15 +23,15 @@ The main function for the two-dimensional HHH program
 #endif
 
 
-//#define TEST_UPDATE 1
+#define TEST_UPDATE 1
 #define TEST_QUERY 1
 
 
 #define HIT_TESTING 1
-//#define BASE_WRSS_ALGO 1
-//#define ACC_TESTING 1
-//#define ACC1_TESTING 1
-//#define RAW_TESING 1
+#define BASE_WRSS_ALGO 1
+#define ACC_TESTING 1
+#define ACC1_TESTING 1
+#define RAW_TESING 1
 //the masks
 LCLitem_t masks[NUM_COUNTERS] = {
 	//255.255.255.255
@@ -175,8 +175,8 @@ int main(int argc, char * argv[]) {
 		int window_size = 1600;
 		int interval = 0;
 #ifdef TEST_QUERY
-		int interval_1 = 1 + interval;
-		int interval_2 = (window_size/2) - interval;
+		int interval_1 = 1 + (int)rand() % (int)(0.99 * window_size);
+		int interval_2 = (window_size/100) + interval_1;
 #endif
 		for (int i = 1; i < argc; ++i)
 		{

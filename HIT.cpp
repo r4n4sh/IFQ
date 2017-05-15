@@ -25,12 +25,17 @@ unsigned int sixthOverflowed;
 
 static inline int computeBlockLevels(unsigned int n)
 {
+/*
 	int trailingZeros;
 	if (!n) return 1;
 	for (trailingZeros = 0; !(n&1); n >>=1)
 		++trailingZeros;
-
 	return trailingZeros + 1;
+*/
+
+	if (!n) return 1;
+	int clz = __builtin_ctz(n);
+	return clz + 1;
 }
 
 void HIT::populateSkipListLevel_0(unsigned int blockNumber, unsigned int itemIdx)
@@ -356,7 +361,7 @@ double HIT::intervalQuery(unsigned int item, int b2, int b1)
 		cout << "number of overflow: " << minOverFlows << endl;
 #endif
 	}
-	return threshold * (minOverFlows + 2 );
+	return threshold * (minOverFlows + 1);
 }
 
 #ifdef DEBUGGING

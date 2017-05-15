@@ -274,7 +274,7 @@ double ACC1::intervalQuery(unsigned int item, int b1, int b2)
 		minOverFlows = overTillSecond - overTillFirst;
 	}
 	// printf("minoverflowed: %d \n", minOverFlows); //TODO: testing
-	return threshold * (minOverFlows + 2 );
+	return threshold * (minOverFlows + 1);
 }
 
 #ifdef ACC1_DEBUGGING
