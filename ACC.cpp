@@ -92,7 +92,6 @@ void ACC::update(unsigned int item, int wieght)
 	currBlock = currBlock % (blocksNumber + 1);
 
 	// Add item to RSS_CPP
-    int prevQuery = this->rss->query(item);
     this->rss->update(item, wieght);
 
     /*
@@ -100,7 +99,7 @@ void ACC::update(unsigned int item, int wieght)
     	--testArr[currBlock];
     */
     // overflow
-    if ((prevQuery%threshold) + wieght > threshold) {
+    if ((this->rss->query(item) %threshold) == 0) {
         head = (head + 1) % maxOverflows;
         overflowsElements[head] = item;
         idToIDx.insert(pair<int, int> (item, overflowsNumber));

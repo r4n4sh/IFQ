@@ -69,11 +69,10 @@ void BaseWRSS::update(unsigned int item, int wieght)
     }
 
     // Add item to RSS_CPP
-    int prevQuery = this->rss->query(item);
     this->rss->update(item, wieght);
 
     // overflow
-    if ((prevQuery%threshold) + wieght > threshold) {
+    if ((this->rss->query(item) %threshold) == 0) {
         head = (head + 1) % maxOverflows;
         overflowsElements[head] = item;
   //      ++overflowsNumber;

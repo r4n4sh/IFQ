@@ -23,15 +23,16 @@ The main function for the two-dimensional HHH program
 #endif
 
 
-#define TEST_UPDATE 1
+//#define TEST_UPDATE 1
 #define TEST_QUERY 1
 
 
 #define HIT_TESTING 1
-#define BASE_WRSS_ALGO 1
-#define ACC_TESTING 1
-#define ACC1_TESTING 1
-#define RAW_TESING 1
+//#define BASE_WRSS_ALGO 1
+//#define ACC_TESTING 1
+//#define ACC1_TESTING 1
+//#define RAW_TESTING 1
+
 //the masks
 LCLitem_t masks[NUM_COUNTERS] = {
 	//255.255.255.255
@@ -289,7 +290,7 @@ int main(int argc, char * argv[]) {
 #ifdef ACC_TESTING
 		ACC *acc = new ACC(window_size, gamma, M, epsilon);
 #endif
-#ifdef RAW_TESING
+#ifdef RAW_TESTING
 		RAW *raw = new RAW(window_size, gamma, M, epsilon);
 #endif
 #ifdef ACC1_TESTING
@@ -351,7 +352,7 @@ int main(int argc, char * argv[]) {
 
 		printf( "./baseWRSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
-#ifdef RAW_TESING
+#ifdef RAW_TESTING
 		begint = clock();
 		ftime(&begintb);
 
@@ -495,7 +496,7 @@ int main(int argc, char * argv[]) {
 #ifdef ACC1_TESTING
 		free(acc1);
 #endif
-#ifdef RAW_TESING
+#ifdef RAW_TESTING
 		free(raw);
 #endif
 #ifdef ACC_TESTING

@@ -111,7 +111,6 @@ void ACC1::update(unsigned int item, int wieght)
 
 
     // Add item to RSS_CPP
-    int prevQuery = this->rss->query(item);
     this->rss->update(item, wieght);
 
 #ifdef ACC1_DEBUGGING
@@ -127,7 +126,7 @@ void ACC1::update(unsigned int item, int wieght)
     	}
 #else
     // overflow
-    if ((prevQuery%threshold) + wieght > threshold) {
+   if ((this->rss->query(item) %threshold) == 0) {
 #endif
     	head = (head + 1) % maxOverflows;
         overflowsElements[head] = item;

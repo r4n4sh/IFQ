@@ -203,7 +203,7 @@ void HIT::update(unsigned int item, int wieght)
 
     try {
         if (index->at(indexTail)) {
-            int oldId = overflowsElements[tail];
+        	int oldId = overflowsElements[tail];
             if (!(totalOverflows->at(oldId) - 1))
                 totalOverflows->erase(oldId);
             else
@@ -216,7 +216,6 @@ void HIT::update(unsigned int item, int wieght)
     }
 
     // Add item to RSS_CPP
-    unsigned int prevQuery = this->rss->query(item);
     this->rss->update(item, wieght);
 
 #ifdef DEBUGGING
@@ -247,7 +246,7 @@ void HIT::update(unsigned int item, int wieght)
     	printf("OVERFLOW!! %u %d  \n", item, wieght);
 #else
     // overflow
-        if ((prevQuery%threshold) + wieght > threshold) {
+        if ((this->rss->query(item)%threshold) == 0) {
 #endif
         head = (head + 1) % maxOverflows;
         overflowsElements[head] = item;
@@ -256,7 +255,7 @@ void HIT::update(unsigned int item, int wieght)
         	++idx;
         }
         ++overflowsNumber;
-        assert(overflowsNumber < maxOverflows);
+        assert(overflowsNumber <= maxOverflows);
         indexHead = (indexHead + 1) % indexSize;
         index->at(indexHead) = 1;
         if (totalOverflows->find(item) == totalOverflows->end())
@@ -299,6 +298,7 @@ double HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, unsigned
 	unsigned int b = b1;
      double count = 0;
      unsigned int d = 1 + (b1 - b2) % (blocksNumber + 1);
+     int level_number = 0;
 #ifdef DEBUGGING
      cout << "d: " << d << " b: " << b << endl;
 #endif
@@ -309,6 +309,7 @@ double HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, unsigned
 #ifdef DEBUGGING
     	 cout << "level: " << level << " block: " << b << endl;
 #endif
+
     	 unordered_map<Block, unordered_map<unsigned int, unsigned int> >::const_iterator foundedTable = skiplistMap.find(block);
 
     	 if (foundedTable == skiplistMap.end()) {
@@ -319,24 +320,27 @@ double HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, unsigned
 #ifdef DEBUGGING
     		 cout << "Overflowed item " << "block: " << b << "level: " << level << "d: " << d << endl;
 #endif
-    		 unordered_map<unsigned int, unsigned int> blockItemMap = foundedTable->second;
-    		 unordered_map<unsigned int, unsigned int>::const_iterator foundedItem = blockItemMap.find(itemIdx);
+    		 //unordered_map<unsigned int, unsigned int> blockItemMap = foundedTable->second; //most heavy operation
+    		 unordered_map<unsigned int, unsigned int> blockItemMap = skiplistMap.at(block);
 
-    		 if(foundedItem == blockItemMap.end()) {
+    		 cout << " blockItemMap size: " << blockItemMap.size() << endl;
+    		 if(blockItemMap.find(itemIdx) == blockItemMap.end()) {
     			 //TODO
 				 printf("Not founded item at block: %d level: %d\n", block.blockNumber, block.blockLevel);
     		 }
     		 else
 				 count += blockItemMap.at(itemIdx);
+
     	 }
 
-    	 d = d - (1 << level);
-    	 b = b - (1 << level);
+    	 int power_level = 1 << level;
+    	 d = d - power_level;
+    	 b = b - power_level;
 
     	 if (b == 0)
     		 b = blocksNumber;
-
      	 }
+
      	 return count;
 }
 
