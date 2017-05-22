@@ -320,7 +320,6 @@ double HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, unsigned
 #ifdef DEBUGGING
     		cout << "Overflowed item " << "block: " << b << "level: " << level << "d: " << d << endl;
 #endif
-    		//unordered_map<unsigned int, unsigned int>* blockItemMap = &(foundedTable->second); //most heavy operation
     		unordered_map<unsigned int, unsigned int>* blockItemMap = &(skiplistMap.at(block));
 
     		if(blockItemMap->find(itemIdx) == blockItemMap->end()) {
@@ -338,8 +337,8 @@ double HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, unsigned
 
     	if (b == 0)
     		b = blocksNumber;
-     	}
-     	return count;
+     }
+     return count;
 }
 
 double HIT::intervalQuery(unsigned int item, int b2, int b1)
