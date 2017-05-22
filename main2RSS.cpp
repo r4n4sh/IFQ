@@ -9,6 +9,7 @@ The main function for the two-dimensional HHH program
 #include <iostream>
 #include "hhh2RSS.hpp"
 #include <sys/timeb.h>
+#include <cstring>
 
 #ifdef PARALLEL
 #include <omp.h>
@@ -176,8 +177,8 @@ int main(int argc, char * argv[]) {
 		int window_size = 1600;
 		int interval = 0;
 #ifdef TEST_QUERY
-		int interval_1 = 1 + (int)rand() % (int)(0.99 * window_size);
-		int interval_2 = (window_size/100) + interval_1;
+		int interval_1;
+		int interval_2;
 #endif
 		for (int i = 1; i < argc; ++i)
 		{
@@ -389,6 +390,9 @@ int main(int argc, char * argv[]) {
 
 #ifdef TEST_QUERY
 		/* Test Query times */
+		interval_1 = 1 + (int)rand() % (int)(0.99 * window_size);
+		interval_2 = (window_size/100) + interval_1;
+
 #ifdef HIT_TESTING
         for (i = 0; i < n; i++)  {
             hit->update(data[i] & masks[0], 1);

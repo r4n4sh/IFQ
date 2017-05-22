@@ -64,6 +64,7 @@ public:
     double query(unsigned int item);
     /* Query Interval Section */
     double intervalQuery(unsigned int item, int b1, int b2);
+
 #ifdef DEBUGGING
     double testIntervalQuery(unsigned int b2, unsigned int b1);
 #endif
