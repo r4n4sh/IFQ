@@ -138,6 +138,7 @@ void HIT::populateSkipListLevels(unsigned int blockNumber)
 }
 
 HIT::HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
+: skiplistMap(ceil(windowSize * log (windowSize))* 1000)
 {
     frameItems = 0;
     overflowsNumber = 0;
