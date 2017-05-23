@@ -247,23 +247,23 @@ double ACC1::intervalQuery(unsigned int item, int b1, int b2)
 		int overTillFirst = 0;
 
 		if (prevL1Block(secondBlock)) {
-			if (overflowedArrL1[prevL1Block(secondBlock) - 1]->find(item) != overflowedArrL1[prevL1Block(secondBlock) - 1]->end())
+			if (overflowedArrL1[prevL1Block(secondBlock) - 1]->find(itemIdx) != overflowedArrL1[prevL1Block(secondBlock) - 1]->end())
 				overTillSecond = overflowedArrL1[prevL1Block(secondBlock) - 1]->at(itemIdx);
 		}
 
 		if (4*prevL1Block(secondBlock) != secondBlock) {
-			if (overflowedArrL0[secondBlock - 1]->find(item) != overflowedArrL0[secondBlock - 1]->end())
+			if (overflowedArrL0[secondBlock - 1]->find(itemIdx) != overflowedArrL0[secondBlock - 1]->end())
 				overTillSecond += overflowedArrL0[secondBlock - 1]->at(itemIdx);
 		}
 
 		if (prevL1Block(firstBlock)) {
-			if (overflowedArrL1[prevL1Block(firstBlock) - 1]->find(item) != overflowedArrL1[prevL1Block(firstBlock) - 1]->end())
+			if (overflowedArrL1[prevL1Block(firstBlock) - 1]->find(itemIdx) != overflowedArrL1[prevL1Block(firstBlock) - 1]->end())
 				overTillFirst = overflowedArrL1[prevL1Block(firstBlock) - 1]->at(itemIdx);
 		}
 
 
 		if (4*prevL1Block(firstBlock)!= firstBlock) {
-			if (overflowedArrL0[firstBlock - 1]->find(item) != overflowedArrL0[firstBlock - 1]->end())
+			if (overflowedArrL0[firstBlock - 1]->find(itemIdx) != overflowedArrL0[firstBlock - 1]->end())
 				overTillFirst += overflowedArrL0[firstBlock - 1]->at(itemIdx);
 		}
 

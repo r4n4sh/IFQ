@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <iostream>
 #include "ACC.hpp"
 
 using namespace std;
@@ -187,12 +188,13 @@ double ACC::intervalQuery(unsigned int item, int b1, int b2)
 		printf("overflowed in first: %d \n", *((int *)overflowedArr + maxOverflows * firstBlock + itemIdx));
 		*/ //TODO: testing
 
-		if (overflowedArr[secondBlock - 1]->find(item) != overflowedArr[secondBlock - 1]->end())
+		if (overflowedArr[secondBlock - 1]->find(itemIdx) != overflowedArr[secondBlock - 1]->end()) {
 			overTillSecond = overflowedArr[secondBlock - 1]->at(itemIdx);
+		}
 
-		if (overflowedArr[firstBlock - 1]->find(item) != overflowedArr[firstBlock - 1]->end())
+		if (overflowedArr[firstBlock - 1]->find(itemIdx) != overflowedArr[firstBlock - 1]->end()) {
 			overTillFirst = overflowedArr[firstBlock - 1]->at(itemIdx);
-
+		}
 		minOverFlows = overTillSecond - overTillFirst;
 	}
 
