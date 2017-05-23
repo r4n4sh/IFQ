@@ -1,6 +1,6 @@
 //
-//  HIT.hpp
-//
+//  HIT_1.hpp
+//  
 //
 //  Created by Rana Shahout on 3/15/17.
 //
@@ -56,10 +56,10 @@ struct hash<Block>
 };
 }
 
-class HIT {
+class HIT_1 {
 public:
-    HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon);
-    ~HIT();
+    HIT_1(unsigned int windowSize, float gamma, unsigned int m, float epsilon);
+    ~HIT_1();
     void update(unsigned int item, int wieght);
     double query(unsigned int item);
     /* Query Interval Section */
@@ -98,8 +98,7 @@ private:
 
     unsigned int skiplistSize;
     unordered_map<unsigned int, unsigned int> idToIDx;
-    unordered_map<unsigned int, unsigned int> **skiplistMap;
-    unsigned int *levelToidx;
+    unordered_map<Block, unordered_map<unsigned int, unsigned int>* >* skiplistMap;
 };
 
 #endif /* HIT_hpp */
