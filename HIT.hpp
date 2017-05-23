@@ -98,7 +98,7 @@ private:
 
     unsigned int skiplistSize;
     unordered_map<unsigned int, unsigned int> idToIDx;
-    unordered_map<Block, unordered_map<unsigned int, unsigned int> > skiplistMap;
+    unordered_map<Block, unordered_map<unsigned int, unsigned int>* >* skiplistMap;
 };
 
 #endif /* HIT_hpp */

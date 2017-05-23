@@ -42,23 +42,23 @@ void HIT::populateSkipListLevel_0(unsigned int blockNumber, unsigned int itemIdx
 {
      /* Level 0*/
      Block block_0 = Block(blockNumber,0);
-    unordered_map<Block, unordered_map<unsigned int, unsigned int> >::const_iterator foundedTable = skiplistMap.find(block_0);
+    unordered_map<Block, unordered_map<unsigned int, unsigned int>* >::const_iterator foundedTable = skiplistMap->find(block_0);
 #ifdef DEBUGGING
     cout << "Populate skiplist level 0 for block: " << blockNumber << " item index: " << itemIdx << endl;
 #endif
-    if (foundedTable == skiplistMap.end()) {
-     unordered_map<unsigned int, unsigned int> idxToCount;
-     idxToCount.insert(pair<unsigned int, unsigned int> (itemIdx, 1));
-     skiplistMap.insert(pair<Block, unordered_map<unsigned int, unsigned int> > (block_0, idxToCount));
+    if (foundedTable == skiplistMap->end()) {
+     unordered_map<unsigned int, unsigned int>* idxToCount = new unordered_map<unsigned int, unsigned int>(maxOverflows);
+     idxToCount->insert(pair<unsigned int, unsigned int> (itemIdx, 1));
+     skiplistMap->insert(pair<Block, unordered_map<unsigned int, unsigned int>* > (block_0, idxToCount));
     } else {
-     unordered_map<unsigned int, unsigned int> blockItemMap = foundedTable->second;
+     unordered_map<unsigned int, unsigned int>* blockItemMap = foundedTable->second;
 
-     if(blockItemMap.find(itemIdx) == blockItemMap.end())
-             blockItemMap.insert(pair<int, int> (itemIdx, 1));
+     if(blockItemMap->find(itemIdx) == blockItemMap->end())
+             blockItemMap->insert(pair<int, int> (itemIdx, 1));
      else
-             blockItemMap.at(itemIdx) = blockItemMap.at(itemIdx) + 1;
+             blockItemMap->at(itemIdx) = blockItemMap->at(itemIdx) + 1;
 
-     skiplistMap[block_0] = blockItemMap;
+     skiplistMap->at(block_0) = blockItemMap;
 #ifdef DEBUGGING
      printf("block: %d level: 0 ", blockNumber);
      cout << "blockItemMap contains: ";
@@ -81,13 +81,13 @@ void HIT::populateSkipListLevels(unsigned int blockNumber)
     	cout << "populateSkipListLevels block: " << blockNumber << "level: " << level;
     	cout << " = " << "(" << prevLevelBlock.blockNumber << "," << prevLevelBlock.blockLevel << ")" << " +( " << prevBlock.blockNumber << "," << prevBlock.blockLevel << ")" << endl;
 #endif
-        unordered_map<Block, unordered_map<unsigned int, unsigned int> >::const_iterator prevLevelTableItr = skiplistMap.find(prevLevelBlock);
-        unordered_map<Block, unordered_map<unsigned int, unsigned int> >::const_iterator prevBlockTableItr = skiplistMap.find(prevBlock);
+        unordered_map<Block, unordered_map<unsigned int, unsigned int>* >::const_iterator prevLevelTableItr = skiplistMap->find(prevLevelBlock);
+        unordered_map<Block, unordered_map<unsigned int, unsigned int>* >::const_iterator prevBlockTableItr = skiplistMap->find(prevBlock);
 
-    	unordered_map<unsigned int, unsigned int> mergedblockTables;
+    	unordered_map<unsigned int, unsigned int>* mergedblockTables;
 
-    	if ( prevBlockTableItr == skiplistMap.end() ) {
-    		if (prevLevelTableItr == skiplistMap.end()) {
+    	if ( prevBlockTableItr == skiplistMap->end() ) {
+    		if (prevLevelTableItr == skiplistMap->end()) {
 #ifdef DEBUGGING
     			cout << "BOTH prev block and prev level are empty!!" << endl;
 #endif
@@ -107,14 +107,14 @@ void HIT::populateSkipListLevels(unsigned int blockNumber)
             	cout << " " << it->first << ":" << it->second;
             cout << endl;
 #endif
-    		if (prevLevelTableItr != skiplistMap.end()) {
-    			unordered_map<unsigned int, unsigned int> prevLevelTable = prevLevelTableItr->second;
-        		for (auto it = prevLevelTable.begin(); it != prevLevelTable.end(); ++it) {
-        			if (mergedblockTables.find(it->first) != mergedblockTables.end()) {
-        				int prevValue = mergedblockTables.find(it->first)->second;
-        				mergedblockTables[it->first] = prevValue + it->second;
+    		if (prevLevelTableItr != skiplistMap->end()) {
+    			unordered_map<unsigned int, unsigned int>* prevLevelTable = prevLevelTableItr->second;
+        		for (auto it = prevLevelTable->begin(); it != prevLevelTable->end(); ++it) {
+        			if (mergedblockTables->find(it->first) != mergedblockTables->end()) {
+        				int prevValue = mergedblockTables->find(it->first)->second;
+        				mergedblockTables->at(it->first) = prevValue + it->second;
         			} else {
-        				mergedblockTables.insert(pair<unsigned int, unsigned int>(it->first, it->second));
+        				mergedblockTables->insert(pair<unsigned int, unsigned int>(it->first, it->second));
         			}
         		}
 #ifdef DEBUGGING
@@ -127,7 +127,7 @@ void HIT::populateSkipListLevels(unsigned int blockNumber)
 
     	}
 
-        skiplistMap.insert(pair<Block, unordered_map<unsigned int, unsigned int> > (block, mergedblockTables)); // insert do nothing if the key already exist
+        skiplistMap->insert(pair<Block, unordered_map<unsigned int, unsigned int>* > (block, mergedblockTables)); // insert do nothing if the key already exist
 #ifdef DEBUGGING
         cout << "mergedblockTables contains:";
         for ( auto it = mergedblockTables.begin(); it != mergedblockTables.end(); ++it )
@@ -138,7 +138,7 @@ void HIT::populateSkipListLevels(unsigned int blockNumber)
 }
 
 HIT::HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
-: skiplistMap(ceil(windowSize * log (windowSize))* 1000)
+//: skiplistMap(ceil(windowSize * log (windowSize))* 1000)
 {
     frameItems = 0;
     overflowsNumber = 0;
@@ -163,6 +163,7 @@ HIT::HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
 
     /* Query Interval Section */
     skiplistSize = ceil(maxOverflows * log (maxOverflows));
+    skiplistMap = new unordered_map<Block, unordered_map<unsigned int, unsigned int>*> (skiplistSize);//B TODO: allocate static?
 }
 
 HIT::~HIT()
@@ -311,9 +312,9 @@ double HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, unsigned
     	cout << "level: " << level << " block: " << b << endl;
 #endif
 
-    	unordered_map<Block, unordered_map<unsigned int, unsigned int> >::const_iterator foundedTable = skiplistMap.find(block);
+    	unordered_map<Block, unordered_map<unsigned int, unsigned int>* >::const_iterator foundedTable = skiplistMap->find(block);
 
-    	if (foundedTable == skiplistMap.end()) {
+    	if (foundedTable == skiplistMap->end()) {
 #ifdef DEBUGGING
     		 cout << "The item has not overflowed!! in block: " << block.blockNumber << " level: " << block.blockLevel << endl;
 #endif
@@ -321,7 +322,7 @@ double HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, unsigned
 #ifdef DEBUGGING
     		cout << "Overflowed item " << "block: " << b << "level: " << level << "d: " << d << endl;
 #endif
-    		unordered_map<unsigned int, unsigned int>* blockItemMap = &(skiplistMap.at(block));
+    		unordered_map<unsigned int, unsigned int>* blockItemMap = skiplistMap->at(block);
 
     		if(blockItemMap->find(itemIdx) == blockItemMap->end()) {
     		 //TODO
