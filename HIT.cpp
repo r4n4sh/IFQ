@@ -164,7 +164,7 @@ HIT::HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     	skiplistMap[i] =  new unordered_map<unsigned int, unsigned int> (maxOverflows);
 
     int levelToidxSize = ceil(log(blocksNumber));
-    levelToidx = new unsigned int[levelToidxSize];
+    levelToidx = new unsigned int[levelToidxSize + 1];
 
     for(int i = 0 ; i <= levelToidxSize ; i++) {
     	levelToidx[i] =  (2 * blocksNumber) - (blocksNumber * pow(2, 1-i));
