@@ -19,13 +19,14 @@ unsigned int firstOverflow;
 unsigned int thirdOverflow;
 #endif
 
-static inline int nextMulOf4(int number) {
+static inline int nextMulOf4(double number) {
 	if (number == 1) return 4;
-	return 4 * (int)ceil(log(number)/log(4));
+	return 4 * (int)ceil(number/4);
+
 }
 
 static inline int prevL1Block(int number) {
-	return (int)floor(double(number/4));
+	return (int)floor(double (number)/4.0);
 }
 
 ACC1::ACC1(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
@@ -57,6 +58,7 @@ ACC1::ACC1(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
 
     int l1Size = ceil(blocksNumber/4); //TODO: define the magic number 4
     overflowedArrL1 = new unordered_map<unsigned int, unsigned int>*[l1Size];
+
     for(int i = 0 ; i < l1Size ; i++)
     	overflowedArrL1[i] = new unordered_map<unsigned int, unsigned int> (maxOverflows);
 #ifdef ACC1_DEBUGGING
@@ -83,11 +85,47 @@ ACC1::~ACC1()
 
 void ACC1::update(unsigned int item, int wieght)
 {
+	++frameItems;
+#ifdef ACC1_DEBUGGING
+	cout << "*** UPDATE for frame: " << frameItems << "***" << endl;
+#endif
+
+	int currBlock = (ceil((double)frameItems / (double)blockSize));
+
+	currBlock = currBlock % (blocksNumber + 1);
+
+
 	/* New Block */
-    if (((++frameItems) % blockSize) == 0) {
-        indexTail = (indexTail + 1) % indexSize;
+    if (((frameItems) % blockSize) == 0) {
+#ifdef ACC1_DEBUGGING
+    	cout << "NEW BLOCK! " << currBlock << endl;
+#endif
+
+    	indexTail = (indexTail + 1) % indexSize;
         indexHead = (indexHead + 1) % indexSize;
         index->at(indexHead) = 0;
+        if (currBlock >= 1) {
+        	//TODO
+        	if (((currBlock) % 4) != 0)
+        		*(overflowedArrL0[currBlock]) = *(overflowedArrL0[currBlock - 1]);
+
+        	if (((currBlock + 1) % 4) == 0 && ((currBlock + 1) / 4) != 1) {
+        		unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArrL1[((currBlock + 1)/ 4) - 2];
+        		unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArrL1[((currBlock + 1) / 4) - 1];
+
+        		if (!prevL1Table->empty()) {
+        			for (auto it = prevL1Table->begin(); it != prevL1Table->end(); ++it) {
+        				if (mergedblockTables->find(it->first) != mergedblockTables->end()) {
+        					int prevValue = mergedblockTables->find(it->first)->second;
+        					mergedblockTables->at(it->first) = prevValue + it->second;
+        				} else {
+        					mergedblockTables->insert(pair<unsigned int, unsigned int>(it->first, it->second));
+        				}
+        			}
+        		}
+
+        	}
+        }
     }
 
     // Remove oldest element in oldest block
@@ -106,9 +144,6 @@ void ACC1::update(unsigned int item, int wieght)
     } catch (const out_of_range) {
     }
 
-	int currBlock = (ceil((double)frameItems / (double)blockSize));
-	currBlock = currBlock % (blocksNumber + 1);
-
 
     // Add item to RSS_CPP
     this->rss->update(item, wieght);
@@ -120,10 +155,25 @@ void ACC1::update(unsigned int item, int wieght)
     		cout << "block 6 overflow" << endl;
     		item = firstOverflow;
     	}
+/*
     	if(currBlock == 6 && testArr[currBlock - 1] == 0) {
     		cout << "block 3 overflow" << endl;
     		item = thirdOverflow;
     	}
+*/
+    	if(currBlock == 3) {
+    		cout << "block 3 overflow" << endl;
+    		item = firstOverflow;
+    	}
+
+    	if(currBlock == 7) {
+    		cout << "block 7 overflow" << endl;
+    		item = thirdOverflow;
+    	}
+
+    	printf("OVERFLOW!! %u %d  \n", item, wieght);
+
+
 #else
     // overflow
    if ((this->rss->query(item) %threshold) == 0) {
@@ -146,9 +196,11 @@ void ACC1::update(unsigned int item, int wieght)
             totalOverflows->at(item) = totalOverflows->at(item) + 1;
 #ifdef ACC1_DEBUGGING
         printf("before overflowArrs currBlock: %d blocksNumber:%d itemIdx: %d\n", currBlock, blocksNumber, itemIdx);// TODO: testing
-    	cout << "update level 0 for: " << itemIdx << " from: " << currBlock << " To: " << nextMulOf4(currBlock) << endl;
+    	//cout << "update level 0 for: " << itemIdx << " from: " << currBlock << " To: " << nextMulOf4(currBlock) << endl;
 #endif
         /* Update Level 0 */
+/*
+    	cout << "Updating level 0, form: " << currBlock << " to: " << nextMulOf4(currBlock) << endl;
         for (int i = currBlock; i <= nextMulOf4(currBlock); ++i) {
             unordered_map<unsigned int, unsigned int>* blockMap = overflowedArrL0[i -1];
 
@@ -165,10 +217,31 @@ void ACC1::update(unsigned int item, int wieght)
             cout << endl;
 #endif
         }
+*/
+#ifdef ACC1_DEBUGGING
+    	cout << "update level 0 for: " << itemIdx << " index in L0 array: " << currBlock -1 << endl;
+#endif
+
+        unordered_map<unsigned int, unsigned int>* blockMapL0 = overflowedArrL0[currBlock -1];
+
+        if(blockMapL0->find(itemIdx) == blockMapL0->end())
+        	blockMapL0->insert(pair<int, int> (itemIdx, 1));
+        else
+        	blockMapL0->at(itemIdx) = blockMapL0->at(itemIdx) + 1;
+
+        overflowedArrL0[currBlock - 1] = blockMapL0;
+
+/*
+ *
+         Update Level 1
+
+
 #ifdef ACC1_DEBUGGING
     	cout << "update level 1 for: " << itemIdx << " from: " << floor(log(currBlock)/log(4)) << " To: " << ceil(blocksNumber/4) - 1<< endl;
 #endif
-        /* Update Level 1 */
+
+    	cout << "Updating level 1, levels number from: " <<  floor(log(currBlock)/log(4)) << " to: " << ceil(blocksNumber/4) << endl;
+
         for (int i = floor(log(currBlock)/log(4)); i < ceil(blocksNumber/4); ++i) {
             unordered_map<unsigned int, unsigned int>* blockMap = overflowedArrL1[i];
 
@@ -184,6 +257,21 @@ void ACC1::update(unsigned int item, int wieght)
             cout << endl;
 #endif
         }
+*/
+
+    	int l1Block = (int)ceil(double(currBlock) / 4.0) - 1;
+#ifdef ACC1_DEBUGGING
+    	cout << "update level 1 for: " << itemIdx << " index in L1 array: " << l1Block << endl;
+#endif
+
+        unordered_map<unsigned int, unsigned int>* blockMapL1 = overflowedArrL1[l1Block];
+
+        if(blockMapL1->find(itemIdx) == blockMapL1->end())
+        	blockMapL1->insert(pair<int, int> (itemIdx, 1));
+        else
+        	blockMapL1->at(itemIdx) = blockMapL1->at(itemIdx) + 1;
+        overflowedArrL1[l1Block] = blockMapL1;
+
 
 #ifdef ACC1_DEBUGGING
     	if (overflowsNumber == 1) {
@@ -242,7 +330,6 @@ double ACC1::intervalQuery(unsigned int item, int b1, int b2)
 #ifdef ACC1_DEBUGGING
 		cout << "ItemIdx: " << itemIdx << " prevL1Block(secondBlock): " << prevL1Block(secondBlock) - 1 << " prevL1Block(firstBlock): " << prevL1Block(firstBlock) - 1<< endl;
 #endif
-
 		int overTillSecond = 0;
 		int overTillFirst = 0;
 
@@ -260,7 +347,6 @@ double ACC1::intervalQuery(unsigned int item, int b1, int b2)
 			if (overflowedArrL1[prevL1Block(firstBlock) - 1]->find(itemIdx) != overflowedArrL1[prevL1Block(firstBlock) - 1]->end())
 				overTillFirst = overflowedArrL1[prevL1Block(firstBlock) - 1]->at(itemIdx);
 		}
-
 
 		if (4*prevL1Block(firstBlock)!= firstBlock) {
 			if (overflowedArrL0[firstBlock - 1]->find(itemIdx) != overflowedArrL0[firstBlock - 1]->end())

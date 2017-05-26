@@ -66,11 +66,21 @@ double ACC::computeOverflowCount(unsigned int item)
 
 void ACC::update(unsigned int item, int wieght)
 {
+	++frameItems;
+
+	int currBlock = (ceil((double)frameItems / (double)blockSize));
+
+	currBlock = currBlock % (blocksNumber + 1);
+
 	/* New Block */
-    if (((++frameItems) % blockSize) == 0) {
+    if (((frameItems) % blockSize) == 0) {
         indexTail = (indexTail + 1) % indexSize;
         indexHead = (indexHead + 1) % indexSize;
         index->at(indexHead) = 0;
+        if (currBlock > 1) {
+        	*(overflowedArr[currBlock]) = *(overflowedArr[currBlock - 1]);
+        }
+
     }
 
     // Remove oldest element in oldest block
@@ -89,8 +99,6 @@ void ACC::update(unsigned int item, int wieght)
     } catch (const out_of_range) {
     }
 
-	int currBlock = (ceil((double)frameItems / (double)blockSize));
-	currBlock = currBlock % (blocksNumber + 1);
 
 	// Add item to RSS_CPP
     this->rss->update(item, wieght);
@@ -118,6 +126,7 @@ void ACC::update(unsigned int item, int wieght)
 
    	    int itemIdx = idToIDx.at(item);
 
+/*
         for (int i = currBlock; i <= blocksNumber; ++i) {
             unordered_map<unsigned int, unsigned int>* blockMap = overflowedArr[i -1];
 
@@ -134,6 +143,16 @@ void ACC::update(unsigned int item, int wieght)
             cout << endl;
 #endif
         }
+*/
+        unordered_map<unsigned int, unsigned int>* blockMap = overflowedArr[currBlock -1];
+
+        if(blockMap->find(itemIdx) == blockMap->end())
+        	blockMap->insert(pair<int, int> (itemIdx, 1));
+        else
+        	blockMap->at(itemIdx) = blockMap->at(itemIdx) + 1;
+
+        overflowedArr[currBlock - 1] = blockMap;
+
         /*
     	if (overflowsNumber == 2) {
     		lastOverflowed = item;
