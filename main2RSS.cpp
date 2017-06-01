@@ -29,10 +29,10 @@ The main function for the two-dimensional HHH program
 
 
 #define HIT_TESTING 1
-//#define BASE_WRSS_ALGO 1
-//#define ACC_TESTING 1
-//#define ACC1_TESTING 1
-//#define RAW_TESTING 1
+#define BASE_WRSS_ALGO 1
+#define ACC_TESTING 1
+#define ACC1_TESTING 1
+#define RAW_TESTING 1
 
 //the masks
 LCLitem_t masks[NUM_COUNTERS] = {
@@ -169,17 +169,19 @@ int main(int argc, char * argv[]) {
 		clock_t begint, endt;
 		struct timeb begintb, endtb;
 		unsigned * weights;
+		unsigned * intervals;
 		unsigned long * data;
 		FILE * fp = NULL;
 		int M = 1;
 		float gamma = 4;
 		double epsilon = 0.01;
+		unsigned int interval_size;
 		int window_size = 1600;
-		int interval = 0;
 #ifdef TEST_QUERY
 		int interval_1;
 		int interval_2;
 #endif
+
 		for (int i = 1; i < argc; ++i)
 		{
 			if (strcmp(argv[i], "-np") == 0)
@@ -259,11 +261,22 @@ int main(int argc, char * argv[]) {
 				i++;
 				if (i >= argc)
 				{
-					std::cout << "Missing interval." << std::endl;
+					std::cout << "Missing interval1." << std::endl;
 					return -1;
 				}
 
-				interval = atoi(argv[i]);
+				interval_1 = atoi(argv[i]);
+			}
+			else if (strcmp(argv[i], "-j") == 0)
+			{
+				i++;
+				if (i >= argc)
+				{
+					std::cout << "Missing interval2." << std::endl;
+					return -1;
+				}
+
+				interval_2 = atoi(argv[i]);
 			}
 			else
 			{
@@ -277,10 +290,14 @@ int main(int argc, char * argv[]) {
 			printf("Unacceptable parameters: eps*n >= theshold\n");
 			return 0;
 		}
+
+		interval_size = ceil(window_size / 100);
 		epsilon = (double)1/(double)counters;
 		data = (unsigned long *) malloc(sizeof(unsigned long) * n);
 		weights = (unsigned *) malloc(sizeof(unsigned) * n);
-
+#ifdef TEST_QUERY
+		intervals = (unsigned *) malloc(sizeof(unsigned) * n);
+#endif
 
 #ifdef HIT_TESTING
 		HIT *hit = new HIT(window_size, gamma, M, epsilon);
@@ -302,6 +319,9 @@ int main(int argc, char * argv[]) {
 			data[i] = (unsigned long)256*((unsigned long)256*((unsigned long)256*w + x) + y) + z;
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			fscanf(fp, "%d", weights+i);
+#ifdef TEST_QUERY
+			intervals[i] = 1 + (int)rand() % (int)(0.99 * window_size);
+#endif
 		}
 #ifdef TEST_UPDATE
 #ifdef HIT_TESTING
@@ -390,8 +410,6 @@ int main(int argc, char * argv[]) {
 
 #ifdef TEST_QUERY
 		/* Test Query times */
-		interval_1 = 1 + (int)rand() % (int)(0.99 * window_size);
-		interval_2 = (window_size/100) + interval_1;
 
 #ifdef HIT_TESTING
         for (i = 0; i < n; i++)  {
@@ -401,7 +419,7 @@ int main(int argc, char * argv[]) {
 		begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            hit->intervalQuery(data[i] & masks[0], interval_1, interval_2);
+            hit->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
         }
 
 		endt = clock();
@@ -422,7 +440,7 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
-            acc->intervalQuery(data[i] & masks[0], interval_1, interval_2);
+            acc->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
         }
 
 		endt = clock();
@@ -464,7 +482,7 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
-            raw->intervalQuery(data[i] & masks[0], interval_1, interval_2);
+            raw->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
         }
 
 		endt = clock();
@@ -484,7 +502,7 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
-            acc1->intervalQuery(data[i] & masks[0], interval_1, interval_2);
+            acc1->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
         }
 
 		endt = clock();
@@ -495,6 +513,9 @@ int main(int argc, char * argv[]) {
 
 		printf( "./acc1 %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
+#endif
+#ifdef TEST_QUERY
+		free(intervals);
 #endif
 		free(data);
 #ifdef ACC1_TESTING
