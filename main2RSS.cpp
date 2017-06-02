@@ -28,11 +28,11 @@ The main function for the two-dimensional HHH program
 #define TEST_QUERY 1
 
 
-#define HIT_TESTING 1
-#define BASE_WRSS_ALGO 1
-#define ACC_TESTING 1
+//#define HIT_TESTING 1
+//#define BASE_WRSS_ALGO 1
+//#define ACC_TESTING 1
 #define ACC1_TESTING 1
-#define RAW_TESTING 1
+//#define RAW_TESTING 1
 
 //the masks
 LCLitem_t masks[NUM_COUNTERS] = {
@@ -439,9 +439,15 @@ int main(int argc, char * argv[]) {
 		begint = clock();
 		ftime(&begintb);
 
+/*
         for (i = 0; i < n; i++)  {
             acc->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
+        } */
+
+        for (i = 0; i < n; i++)  {
+            acc->intervalQuery(data[i] & masks[0], interval_1, interval_2);
         }
+
 
 		endt = clock();
 		ftime(&endtb);

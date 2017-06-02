@@ -92,7 +92,7 @@ private:
     double computeOverflowCount(unsigned int item);
 
     /* Query Interval Section */
-    void populateSkipListLevel_0(unsigned int blockNumber, unsigned int itemIdx);
+    void populateCurrSkipListLevel(unsigned int blockNumber, unsigned int itemIdx);
     void populateSkipListLevels(unsigned int blockNumber);
     unsigned int partialIntervalQuery(unsigned int itemIdx, unsigned int secondBlock, unsigned int firstBlock);
 

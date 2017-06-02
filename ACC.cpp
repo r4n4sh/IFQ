@@ -77,7 +77,7 @@ void ACC::update(unsigned int item, int wieght)
         indexTail = (indexTail + 1) % indexSize;
         indexHead = (indexHead + 1) % indexSize;
         index->at(indexHead) = 0;
-        if (currBlock > 1) {
+        if (currBlock >= 1 && currBlock < blocksNumber) {
         	*(overflowedArr[currBlock]) = *(overflowedArr[currBlock - 1]);
         }
 
@@ -113,7 +113,7 @@ void ACC::update(unsigned int item, int wieght)
         overflowsElements[head] = item;
         idToIDx.insert(pair<int, int> (item, overflowsNumber));
         ++overflowsNumber;
-        assert(overflowsNumber < maxOverflows);
+        assert(overflowsNumber <= maxOverflows);
         indexHead = (indexHead + 1) % indexSize;
         index->at(indexHead) = 1;
         unordered_map<int,int>::const_iterator foundedItem = totalOverflows->find(item);
@@ -190,7 +190,7 @@ double ACC::intervalQuery(unsigned int item, int b1, int b2)
 {
 
 	int firstBlock = (int) floor(b1 / blockSize) % (int) blocksNumber;
-	int secondBlock = (int) floor(b2 / blockSize) % (int) blocksNumber;
+	int secondBlock = (int) ceil(b2 / blockSize) % (int) blocksNumber;
 	int minOverFlows;
 	int itemIdx;
 
