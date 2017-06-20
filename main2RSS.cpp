@@ -24,14 +24,16 @@ The main function for the two-dimensional HHH program
 #endif
 
 
-//#define TEST_UPDATE 1
-#define TEST_QUERY 1
+#define TEST_UPDATE 1
+//#define TEST_QUERY 1
+//#define TRY_2
 
 
 //#define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
 //#define ACC_TESTING 1
-#define ACC1_TESTING 1
+#define ACCK_TESTING 1
+//#define ACC1_TESTING 1
 //#define RAW_TESTING 1
 
 //the masks
@@ -177,10 +179,8 @@ int main(int argc, char * argv[]) {
 		double epsilon = 0.01;
 		unsigned int interval_size;
 		int window_size = 1600;
-#ifdef TEST_QUERY
 		int interval_1;
 		int interval_2;
-#endif
 
 		for (int i = 1; i < argc; ++i)
 		{
@@ -296,8 +296,14 @@ int main(int argc, char * argv[]) {
 		data = (unsigned long *) malloc(sizeof(unsigned long) * n);
 		weights = (unsigned *) malloc(sizeof(unsigned) * n);
 #ifdef TEST_QUERY
+#ifdef TRY_2
+		int interval_arr_size = ceil(n/1000);
+		intervals = (unsigned *) malloc(sizeof(unsigned) * interval_arr_size);
+#else
 		intervals = (unsigned *) malloc(sizeof(unsigned) * n);
 #endif
+#endif
+
 
 #ifdef HIT_TESTING
 		HIT *hit = new HIT(window_size, gamma, M, epsilon);
@@ -314,15 +320,26 @@ int main(int argc, char * argv[]) {
 #ifdef ACC1_TESTING
 		ACC1 *acc1 = new ACC1(window_size, gamma, M, epsilon);
 #endif
+#ifdef ACCK_TESTING
+		ACC_K *acck = new ACC_K(window_size, gamma, M, epsilon, 3);
+#endif
+
 		for (i = 0; i < n; i++) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			data[i] = (unsigned long)256*((unsigned long)256*((unsigned long)256*w + x) + y) + z;
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			fscanf(fp, "%d", weights+i);
 #ifdef TEST_QUERY
+#ifdef TRY_2
+			int interval_idx = i/1000;
+			intervals[interval_idx] = 1 + (int)rand() % (int)(0.99 * window_size);
+#else
 			intervals[i] = 1 + (int)rand() % (int)(0.99 * window_size);
 #endif
+#endif
 		}
+
+
 #ifdef TEST_UPDATE
 #ifdef HIT_TESTING
 		begint = clock();
@@ -355,6 +372,24 @@ int main(int argc, char * argv[]) {
 		memory = maxmemusage();
 
 		printf( "./acc %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+#endif
+
+#ifdef ACCK_TESTING
+		begint = clock();
+		ftime(&begintb);
+
+        for (i = 0; i < n; i++)  {
+            acck->update(data[i] & masks[0], 1);
+            //acck->update(i, 1);//TODO: testing?
+        }
+       // acck->printHashMaps();
+		endt = clock();
+		ftime(&endtb);
+
+		time = ((double)(endt-begint))/CLK_PER_SEC;
+		memory = maxmemusage();
+
+		printf( "./acck %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
 
 #ifdef BASE_WRSS_ALGO
@@ -419,7 +454,11 @@ int main(int argc, char * argv[]) {
 		begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
+#ifdef TRY_2
+            hit->intervalQuery(data[i] & masks[0], intervals[i/1000], intervals[i/1000] + interval_size);
+#else
             hit->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
+#endif
         }
 
 		endt = clock();
@@ -439,15 +478,14 @@ int main(int argc, char * argv[]) {
 		begint = clock();
 		ftime(&begintb);
 
-/*
+
         for (i = 0; i < n; i++)  {
+#ifdef TRY_2
+            acc->intervalQuery(data[i] & masks[0], intervals[i/1000], intervals[i/1000] + interval_size);
+#else
             acc->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
-        } */
-
-        for (i = 0; i < n; i++)  {
-            acc->intervalQuery(data[i] & masks[0], interval_1, interval_2);
+#endif
         }
-
 
 		endt = clock();
 		ftime(&endtb);
@@ -488,7 +526,11 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
+#ifdef TRY_2
+            raw->intervalQuery(data[i] & masks[0], intervals[i/1000], intervals[i/1000] + interval_size);
+#else
             raw->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
+#endif
         }
 
 		endt = clock();
@@ -508,7 +550,11 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
+#ifdef TRY_2
+            acc1->intervalQuery(data[i] & masks[0], intervals[i/1000], intervals[i/1000] + interval_size);
+#else
             acc1->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
+#endif
         }
 
 		endt = clock();

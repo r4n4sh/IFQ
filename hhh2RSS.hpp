@@ -16,6 +16,7 @@
 #include "RSS_CPP.hpp"
 #include "HIT.hpp"
 #include "ACC.hpp"
+#include "ACC_K.hpp"
 #include "ACC1.hpp"
 #include "BaseWRSS.hpp"
 #include "RAW.hpp"
