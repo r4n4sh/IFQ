@@ -145,7 +145,7 @@ HIT::HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     tail = 0;
     idx = 0;
     indexTail = 0;
-    this->blockSize = ceil((windowSize * epsilon)/4); // W/k; k= 4/epsilon
+    this->blockSize = ceil((windowSize * epsilon)/6); // W/k; k= 6/epsilon
     this->windowSize = windowSize;
     this->blocksNumber = windowSize / blockSize;
     this->m = m;
@@ -158,7 +158,7 @@ HIT::HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     index = new vector<int> (indexSize); // 0 means end of block
     overflowsElements = new unsigned int[maxOverflows];
     rss = new RSS_CPP(epsilon, m, gamma);//y
-    threshold = ceil(windowSize*m*epsilon / 4.f); // W*M/k
+    threshold = ceil(windowSize*m*epsilon / 6.f); // W*M/k
     totalOverflows = new unordered_map<unsigned int, unsigned int> (maxOverflows);//B TODO: allocate static?
 
     /* Query Interval Section */
@@ -200,9 +200,8 @@ void HIT::update(unsigned int item, int wieght)
 #ifdef DEBUGGING
 	cout << "*** UPDATE for frame: " << frameItems << "***" << endl;
 #endif
-	int blockNumber = (ceil((double)frameItems / (double)blockSize));
-
-	blockNumber = blockNumber % (blocksNumber + 1);
+	int blockNumber = (floor((double)frameItems / (double)blockSize));
+	blockNumber = (blockNumber % (blocksNumber)) + 1;
 
 	/* Last frame in the current block */
     if ((frameItems % blockSize) == 0) {
@@ -353,9 +352,9 @@ unsigned int HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, un
 
 double HIT::intervalQuery(unsigned int item, int b2, int b1)
 {
+	int firstBlock = ((int) ceil((double) b2 / (double) blockSize) % (int) blocksNumber) + 1;
+	int secondBlock = ((int) floor((double) b1 / (double)blockSize) % (int) blocksNumber) + 1;
 
-	int firstBlock = (int) floor((double) b2 / (double) blockSize) % (int) (blocksNumber + 1);
-	int secondBlock = (int) ceil((double) b1 / (double)blockSize) % (int) (blocksNumber + 1);
 	unsigned int minOverFlows = 0;
 	int itemIdx;
 #ifdef DEBUGGING

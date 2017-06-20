@@ -24,7 +24,7 @@ ACC::ACC(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     overflowsNumber = 0;
     tail = 0;
     indexTail = 0;
-    this->blockSize = ceil((windowSize * epsilon)/4); // W/k; k= 4/epsilon
+    this->blockSize = ceil((windowSize * epsilon)/6.0); // W/k; k= 6/epsilon
     this->windowSize = windowSize;
     this->blocksNumber = windowSize / blockSize;
     this->m = m;
@@ -37,7 +37,7 @@ ACC::ACC(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     index = new vector<int> (indexSize); // 0 means end of block
     overflowsElements = new unsigned int[maxOverflows];
     rss = new RSS_CPP(epsilon, m, gamma);//y
-    threshold = ceil(windowSize*m*epsilon / 4.f); // W*M/k
+    threshold = ceil(windowSize*m*epsilon / 6.0); // W*M/k
     totalOverflows = new unordered_map<int, int> (maxOverflows);//B TODO: allocate static?
 
     overflowedArr = new unordered_map<unsigned int, unsigned int>*[blocksNumber];
@@ -60,7 +60,7 @@ ACC::~ACC()
 
 double ACC::computeOverflowCount(unsigned int item)
 {
-    double k = 4. / this->epsilon;
+    double k = 6. / this->epsilon;
     return (rss->query(item) / (this->m * (this->windowSize / k)));
 }
 
@@ -68,9 +68,8 @@ void ACC::update(unsigned int item, int wieght)
 {
 	++frameItems;
 
-	int currBlock = (ceil((double)frameItems / (double)blockSize));
-
-	currBlock = currBlock % (blocksNumber + 1);
+	int currBlock = (floor((double)frameItems / (double)blockSize));
+	currBlock = (currBlock % (blocksNumber)) + 1;
 
 	/* New Block */
     if (((frameItems) % blockSize) == 0) {
@@ -144,6 +143,7 @@ void ACC::update(unsigned int item, int wieght)
 #endif
         }
 */
+
         unordered_map<unsigned int, unsigned int>* blockMap = overflowedArr[currBlock -1];
 
         if(blockMap->find(itemIdx) == blockMap->end())
@@ -188,9 +188,8 @@ double ACC::query(unsigned int item)
 
 double ACC::intervalQuery(unsigned int item, int b1, int b2)
 {
-
-	int firstBlock = (int) floor(b1 / blockSize) % (int) blocksNumber;
-	int secondBlock = (int) ceil(b2 / blockSize) % (int) blocksNumber;
+	int firstBlock = ((int) ceil((double) b1 / (double) blockSize) % (int) blocksNumber);
+	int secondBlock = ((int) floor((double) b2 / (double)blockSize) % (int) blocksNumber);
 	int minOverFlows;
 	int itemIdx;
 
@@ -207,12 +206,12 @@ double ACC::intervalQuery(unsigned int item, int b1, int b2)
 		printf("overflowed in first: %d \n", *((int *)overflowedArr + maxOverflows * firstBlock + itemIdx));
 		*/ //TODO: testing
 
-		if (overflowedArr[secondBlock - 1]->find(itemIdx) != overflowedArr[secondBlock - 1]->end()) {
-			overTillSecond = overflowedArr[secondBlock - 1]->at(itemIdx);
+		if (overflowedArr[secondBlock]->find(itemIdx) != overflowedArr[secondBlock]->end()) {
+			overTillSecond = overflowedArr[secondBlock]->at(itemIdx);
 		}
 
-		if (overflowedArr[firstBlock - 1]->find(itemIdx) != overflowedArr[firstBlock - 1]->end()) {
-			overTillFirst = overflowedArr[firstBlock - 1]->at(itemIdx);
+		if (overflowedArr[firstBlock]->find(itemIdx) != overflowedArr[firstBlock]->end()) {
+			overTillFirst = overflowedArr[firstBlock]->at(itemIdx);
 		}
 		minOverFlows = overTillSecond - overTillFirst;
 	}

@@ -36,7 +36,7 @@ ACC1::ACC1(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     overflowsNumber = 0;
     tail = 0;
     indexTail = 0;
-    this->blockSize = ceil((windowSize * epsilon)/8); // W/k; k= 8/epsilon
+    this->blockSize = ceil((windowSize * epsilon)/6.0); // W/k; k= 6/epsilon
     this->windowSize = windowSize;
     this->blocksNumber = windowSize / blockSize;
     this->m = m;
@@ -49,11 +49,11 @@ ACC1::ACC1(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     index = new vector<int> (indexSize); // 0 means end of block
     overflowsElements = new unsigned int[maxOverflows];
     rss = new RSS_CPP(epsilon, m, gamma);//y
-    threshold = ceil(windowSize*m*epsilon / 8.f); // W*M/k
+    threshold = ceil(windowSize*m*epsilon / 6.0); // W*M/k
     totalOverflows = new unordered_map<int, int> (maxOverflows);//B TODO: allocate static?
 
     overflowedArrL0 = new unordered_map<unsigned int, unsigned int>*[blocksNumber];
-    int l1Size = ceil(blocksNumber/4); //TODO: define the magic number 4
+    int l1Size = ceil(blocksNumber/4.0); //TODO: define the magic number 4
 #ifdef ACC1_DEBUGGING
     cout << "L0 blocks: " << blocksNumber << " L1 blocks: " << l1Size << endl;
 #endif
@@ -69,7 +69,7 @@ ACC1::ACC1(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
 
 ACC1::~ACC1()
 {
-    int l1Size = ceil(blocksNumber/4); //TODO: define the magic number 4
+    int l1Size = ceil(blocksNumber/4.0); //TODO: define the magic number 4
     for (int i = 0; i < l1Size; i++)
     	delete(overflowedArrL1[i]);
     delete[] overflowedArrL1;
@@ -91,9 +91,9 @@ void ACC1::update(unsigned int item, int wieght)
 	cout << "*** UPDATE for frame: " << frameItems << "***" << endl;
 #endif
 
-	int currBlock = (ceil((double)frameItems / (double)blockSize));
+	int currBlock = (floor((double)frameItems / (double)blockSize));
 
-	currBlock = currBlock % (blocksNumber + 1);
+	currBlock = (currBlock % blocksNumber) + 1;
 
 
 	/* New Block */
@@ -317,8 +317,8 @@ double ACC1::query(unsigned int item)
 
 double ACC1::intervalQuery(unsigned int item, int b1, int b2)
 {
-	int firstBlock = (int) ceil((double) b1 / (double) blockSize) % (int) (blocksNumber + 1);
-	int secondBlock = (int) floor((double) b2 / (double)blockSize) % (int) (blocksNumber + 1);
+	int firstBlock = ((int) ceil((double) b2 / (double) blockSize) % (int) blocksNumber) + 1;
+	int secondBlock = ((int) floor((double) b1 / (double)blockSize) % (int) blocksNumber) + 1;
 	int minOverFlows;
 	int itemIdx;
 	int tables = 0;
@@ -425,7 +425,7 @@ void ACC1::printHashMaps()
 		cout << endl;
     }
 
-    for(int i = 0 ; i < ceil(blocksNumber/4) ; i++) {
+    for(int i = 0 ; i < ceil(blocksNumber/4.0) ; i++) {
 		cout << "overflowedArrL1["<< i <<"] contains: ";
 		for ( auto it = overflowedArrL1[i]->begin(); it != overflowedArrL1[i]->end(); ++it )
 			cout << " " << it->first << ":" << it->second;
