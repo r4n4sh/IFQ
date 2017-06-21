@@ -54,6 +54,7 @@ private:
     //double alpha = 0.2;
     float gamma;
     double computeOverflowCount(unsigned int item);
+    unsigned int withinFrameFrequency(unsigned int required_block, int itemIdx);
     /* ACC_K Algorithm */
     unordered_map<unsigned int, unsigned int> idToIDx;
     unordered_map<unsigned int, unsigned int> ***overflowedArrLevels;

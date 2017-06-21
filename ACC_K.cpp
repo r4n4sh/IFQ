@@ -244,6 +244,41 @@ double ACC_K::query(unsigned int item)
 	// return intervalQuery(lastOverflowed, 2, 9); //TODO: testing
 }
 
+
+unsigned int ACC_K::withinFrameFrequency(unsigned int required_block, int itemIdx)
+{
+       int l_min = 1;
+       int l_max;
+       int sum = 0;
+
+       while (required_block % (int)pow(step, l_min) == 0){
+               ++l_min;
+       }
+       l_min -= 1;
+       if (l_min == k -1)
+               l_max = k -1;
+       else
+               l_max = ceil(log(required_block) / log(step)) - 1;
+       int block = required_block;
+       int l = l_min;
+#ifdef ACC_K_DEBUGGING
+       cout << "second Block: l_min: " << l_min << " l_max: " << l_max << endl;
+#endif
+       while (l <= l_max) {
+#ifdef ACC_K_DEBUGGING
+               cout << "lmin: " << l << " l_max: " << l_max << " block: " << block << endl;
+               cout << "table [" << l << "]" << "[" <<  (int)((block - 1)/pow(step, l)) << "]" << endl;
+#endif
+               unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][(int)((block - 1)/pow(step, l))];
+               if (table->find(itemIdx) != table->end()) {
+                       sum += table->at(itemIdx);
+               }
+               block -= pow(step, l);
+               l++;
+       }
+       return sum;
+}
+
 double ACC_K::intervalQuery(unsigned int item, int b1, int b2)
 {
 	int firstBlock = ((int) ceil((double) b2 / (double) blockSize) % (int) blocksNumber) + 1;
@@ -252,8 +287,6 @@ double ACC_K::intervalQuery(unsigned int item, int b1, int b2)
 	int sum_till_second = 0;
 	int sum_till_first = 0;
 	int itemIdx;
-	int l_min = 1;
-	int l_max;
 
 #ifdef ACC_K_DEBUGGING
 	printf("item: %d\n", item);
@@ -264,61 +297,12 @@ double ACC_K::intervalQuery(unsigned int item, int b1, int b2)
 		sum = 0;
 	else {
 		itemIdx = idToIDx.at(item);
-		while (secondBlock % (int)pow(step, l_min) == 0){
-			++l_min;
-		}
-		l_min -= 1;
-		if (l_min == k -1)
-			l_max = k -1;
-		else
-			l_max = ceil(log(firstBlock) / log(step)) - 1;
-		int block = secondBlock;
-		int l = l_min;
-#ifdef ACC_K_DEBUGGING
-		cout << "second Block: l_min: " << l_min << " l_max: " << l_max << endl;
-#endif
-		while (l <= l_max) {
-#ifdef ACC_K_DEBUGGING
-			cout << "lmin: " << l << " l_max: " << l_max << " block: " << block << endl;
-			cout << "table [" << l << "]" << "[" <<  (int)((block - 1)/pow(step, l)) << "]" << endl;
-#endif
-			unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][(int)((block - 1)/pow(step, l))];
-			if (table->find(itemIdx) != table->end()) {
-				sum_till_second += table->at(itemIdx);
-			}
-			block -= pow(step, l);
-			l++;
-		}
 
-
-		l_min = 1;
-		while ((firstBlock % (int)pow(step, l_min) == 0) && (firstBlock >= (int)pow(step, l_min))){
-			++l_min;
+		if (firstBlock <= secondBlock) {
+			sum_till_second = withinFrameFrequency(secondBlock, itemIdx);
+			sum_till_first = withinFrameFrequency(firstBlock, itemIdx);
+			sum = sum_till_second - sum_till_first;
 		}
-		l_min -= 1;
-
-		if (l_min == k -1)
-			l_max = k -1;
-		else
-			l_max = ceil(log(firstBlock) / log(step)) - 1;
-		block = firstBlock;
-		l = l_min;
-#ifdef ACC_K_DEBUGGING
-		cout << "first Block: l_min: " << l_min << " l_max: " << l_max << endl;
-#endif
-		while (l <= l_max) {
-#ifdef ACC_K_DEBUGGING
-			cout << "lmin: " << l << " l_max: " << l_max << " block: " << block << endl;
-			cout << "table [" << l << "]" << "[" <<  (int)((block - 1)/pow(step, l)) << "]" << endl;
-#endif
-			unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][(int)((block - 1)/pow(step, l))];
-			if (table->find(itemIdx) != table->end()) {
-				sum_till_first += table->at(itemIdx);
-			}
-			block -= pow(step, l);
-			l++;
-		}
-		sum = sum_till_second - sum_till_first;
 	}
 	return threshold * (sum + 1);
 }
