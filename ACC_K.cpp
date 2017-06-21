@@ -98,6 +98,29 @@ void ACC_K::update(unsigned int item, int wieght)
         index->at(indexHead) = 0;
 
         if (currBlock >= 1 && currBlock <= blocksNumber) {
+        	for (int level = 1; level < k - 2; ++level) {
+        		if (currBlock % (int)pow(step, level + 1) != 0 && (currBlock - pow(step, level)) % (int)pow(step, level + 1) != 0 && ((currBlock) / pow(step, pow(step, level)) ) != 1) {
+#ifdef ACC_K_DEBUGGING
+        			cout << "update level: " << k -1 << " for currBlock: " << currBlock << endl;
+        			cout << "copy level: " << k -1 << " table: " << (int)((currBlock)/ pow(step, k -1) ) - 2 << " to table: " << (int)((currBlock) / pow(step, k -1) ) - 1 << endl;
+#endif
+					unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArrLevels[k -1][(int)((currBlock)/ pow(step, level) ) - 2];
+					unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArrLevels[k -1][(int)((currBlock) / pow(step, level) ) - 1];
+
+					if (!prevL1Table->empty()) {
+						for (auto it = prevL1Table->begin(); it != prevL1Table->end(); ++it) {
+							if (mergedblockTables->find(it->first) != mergedblockTables->end()) {
+								int prevValue = mergedblockTables->find(it->first)->second;
+								mergedblockTables->at(it->first) = prevValue + it->second;
+							} else {
+								mergedblockTables->insert(pair<unsigned int, unsigned int>(it->first, it->second));
+							}
+						}
+					}
+					*overflowedArrLevels[level][((int) (currBlock/pow(step, level))) - 1] = *mergedblockTables;
+        		}
+        	}
+        	// Always copy tables from previous block in level k -1
 
        		if((currBlock) % (int)pow(step, k -1) == 0 && ((currBlock) / pow(step, k -1) ) != 1) {
 #ifdef ACC_K_DEBUGGING
