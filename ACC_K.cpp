@@ -14,7 +14,7 @@
 using namespace std;
 
 #ifdef ACC_K_DEBUGGING
-int testArr[24] = {1,2,3,0,0,1,1,0,1,2,3,0,0,1,1,0,1,2,3,0,0,1,1,0};
+int testArr[30] = {1,2,2,0,0,1,1,0,1,2,2,0,0,1,1,0,1,2,2,0,0,1,1,0,1,2,2,1,1,1};
 unsigned int firstOverflow;
 unsigned int thirdOverflow;
 #endif
@@ -27,13 +27,14 @@ ACC_K::ACC_K(unsigned int windowSize, float gamma, unsigned int m, float epsilon
     overflowsNumber = 0;
     tail = 0;
     indexTail = 0;
-    this->blockSize = ceil((windowSize * epsilon)/6.0); // W/k; k= 6/epsilon
     this->windowSize = windowSize;
+    this->blockSize = ceil((windowSize * epsilon)/6.0); // W/k; k= 6/epsilon
     this->blocksNumber = windowSize / blockSize;
     this->m = m;
     this->epsilon = epsilon;
     this->gamma = gamma;
     this->step = floor(pow(blocksNumber, (1.0/float(k))));
+    this->blocksNumber = ceil(blocksNumber / pow(step, k-1)) * (pow(step, k - 1));
     maxOverflows = min(blocksNumber * 2, windowSize);
     indexSize = maxOverflows + blocksNumber;
     head = maxOverflows - 1;
@@ -44,6 +45,8 @@ ACC_K::ACC_K(unsigned int windowSize, float gamma, unsigned int m, float epsilon
     threshold = ceil(windowSize*m*epsilon / 6.0); // W*M/k
     totalOverflows = new unordered_map<int, int> (maxOverflows);//B TODO: allocate static?
     overflowedArrLevels = new unordered_map<unsigned int, unsigned int>**[k];
+    ghost_tables = new unordered_map<unsigned int, unsigned int>*[k];
+
 
     unsigned int level_size = blocksNumber;
     for(int level = 0; level < k; level++) {
@@ -56,10 +59,19 @@ ACC_K::ACC_K(unsigned int windowSize, float gamma, unsigned int m, float epsilon
 
         level_size = ceil(double(level_size / step));
     }
+
+    for (int i = 0; i < k; ++i) {
+    	ghost_tables[i] = new unordered_map<unsigned int, unsigned int> (maxOverflows);
+    }
 }
 
 ACC_K::~ACC_K()
 {
+
+    for (int i = 0; i < k -1; ++i) {
+    	delete (ghost_tables[i]);
+    }
+    delete[] ghost_tables;
     int level_size = blocksNumber;
 
     for(int level = 0; level < k; level++) {
@@ -68,8 +80,7 @@ ACC_K::~ACC_K()
         delete(overflowedArrLevels[level]);
         level_size = ceil(double(level_size / step));
     }
-
-    delete(overflowedArrLevels);
+    delete [] overflowedArrLevels;
     delete(totalOverflows);
     delete(rss);
     delete [] overflowsElements;
@@ -98,14 +109,14 @@ void ACC_K::update(unsigned int item, int wieght)
         index->at(indexHead) = 0;
 
         if (currBlock >= 1 && currBlock <= blocksNumber) {
-        	for (int level = 1; level < k - 2; ++level) {
-        		if (currBlock % (int)pow(step, level + 1) != 0 && (currBlock - pow(step, level)) % (int)pow(step, level + 1) != 0 && ((currBlock) / pow(step, pow(step, level)) ) != 1) {
+        	for (int level = 1; level < k - 1; ++level) {
+        		if (currBlock % (int)pow(step, level + 1) != 0 && (currBlock - (int)pow(step, level)) > 0 && currBlock % (int)pow(step, level) == 0  && (currBlock - (int)pow(step, level)) % (int)(pow(step, level + 1)) != 0 && ((currBlock) / pow(step, level)) > 1) {
 #ifdef ACC_K_DEBUGGING
-        			cout << "update level: " << k -1 << " for currBlock: " << currBlock << endl;
-        			cout << "copy level: " << k -1 << " table: " << (int)((currBlock)/ pow(step, k -1) ) - 2 << " to table: " << (int)((currBlock) / pow(step, k -1) ) - 1 << endl;
+        			cout << "update level: " << level << " for currBlock: " << currBlock << endl;
+        			cout << "copy level: " << level << " table: " << (int)((currBlock)/ pow(step, level) ) - 2 << " to table: " << (int)((currBlock) / pow(step, level) ) - 1 << endl;
 #endif
-					unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArrLevels[k -1][(int)((currBlock)/ pow(step, level) ) - 2];
-					unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArrLevels[k -1][(int)((currBlock) / pow(step, level) ) - 1];
+					unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArrLevels[level][(int)((currBlock)/ pow(step, level) ) - 2];
+					unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArrLevels[level][(int)((currBlock) / pow(step, level) ) - 1];
 
 					if (!prevL1Table->empty()) {
 						for (auto it = prevL1Table->begin(); it != prevL1Table->end(); ++it) {
@@ -145,6 +156,15 @@ void ACC_K::update(unsigned int item, int wieght)
         }
 
 
+        /*
+         * Ghost tables
+         */
+
+        for (int level = 1; level < k; level++) {
+        	if(currBlock % (int)(pow(step, level)) == 0) {
+        		ghost_tables[level] = overflowedArrLevels[level][(int)((currBlock)/ pow(step,level) ) - 1];
+        	}
+        }
     }
 
     // Remove oldest element in oldest block
@@ -243,7 +263,7 @@ void ACC_K::update(unsigned int item, int wieght)
     }
 
     // New frame
-    if (frameItems == windowSize) {
+    if (frameItems == blocksNumber * blockSize) {
         frameItems = 0;
         rss->clear();
     }
@@ -274,31 +294,36 @@ unsigned int ACC_K::withinFrameFrequency(unsigned int required_block, int itemId
        int l_max;
        int sum = 0;
 
-       while (required_block % (int)pow(step, l_min) == 0){
+       while (required_block % (int)pow(step, l_min) == 0 && l_min < k){
                ++l_min;
        }
+
        l_min -= 1;
+       int l = l_min;
+
        if (l_min == k -1)
                l_max = k -1;
        else
                l_max = ceil(log(required_block) / log(step)) - 1;
        int block = required_block;
-       int l = l_min;
 #ifdef ACC_K_DEBUGGING
-       cout << "second Block: l_min: " << l_min << " l_max: " << l_max << endl;
+       cout << "Block: " << required_block << " l_min: " << l_min << " l_max: " << l_max << endl;
 #endif
        while (l <= l_max) {
 #ifdef ACC_K_DEBUGGING
                cout << "lmin: " << l << " l_max: " << l_max << " block: " << block << endl;
-               cout << "table [" << l << "]" << "[" <<  (int)((block - 1)/pow(step, l)) << "]" << endl;
+               cout << "table [" << l << "]" << "[" <<  (int)floor((block)/pow(step, l)) - 1 << "]" << endl;
 #endif
-               unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][(int)((block - 1)/pow(step, l))];
+               unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][(int)floor((block)/pow(step, l)) - 1];
                if (table->find(itemIdx) != table->end()) {
                        sum += table->at(itemIdx);
                }
                block -= pow(step, l);
                l++;
        }
+#ifdef ACC_K_DEBUGGING
+       cout << "sum till: " << required_block << " is: " << sum << endl;
+#endif
        return sum;
 }
 
@@ -324,8 +349,53 @@ double ACC_K::intervalQuery(unsigned int item, int b1, int b2)
 		if (firstBlock <= secondBlock) {
 			sum_till_second = withinFrameFrequency(secondBlock, itemIdx);
 			sum_till_first = withinFrameFrequency(firstBlock, itemIdx);
-			sum = sum_till_second - sum_till_first;
+		} else{
+
+			sum_till_second = withinFrameFrequency(secondBlock, itemIdx);
+
+			unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[k -1][(int)((blocksNumber)/pow(step, k - 1)) - 1];
+			if (table->find(itemIdx) != table->end()) {
+				sum_till_second += table->at(itemIdx);
+			}
+
+			int offset = ((int)(floor((double)frameItems / (double)blockSize)) % (int)(blocksNumber)) + 1;
+			int location = firstBlock - 1;
+			int l = 1;
+
+			while (location % (int)pow(step, l) == 0 && l < k){
+				++l;
+			}
+
+			l -= 1;
+
+			while (l <= k -1) {
+				while (location >= offset +1) {
+#ifdef ACC_K_DEBUGGING
+					cout << "l: " << l << " location: " << location << " offset: " << offset << endl;
+#endif
+					unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][(int)((location)/pow(step, l)) - 1];
+					if (table->find(itemIdx) != table->end()) {
+						sum_till_first += table->at(itemIdx);
+					}
+					++l;
+					location = floor(location / pow(step, l)) * pow(step, l);
+				}
+				//read ghost from l till k -1
+
+				while (l <= k -1) {
+#ifdef ACC_K_DEBUGGING
+					cout << "reading ghost_tables["<<l<<"]" << endl;
+#endif
+					unordered_map<unsigned int, unsigned int>* table = ghost_tables[l];
+					if (table->find(itemIdx) != table->end()) {
+						sum_till_first += table->at(itemIdx);
+					}
+					++l;
+				}
+			}
 		}
+
+		sum = sum_till_second - sum_till_first;
 	}
 	return threshold * (sum + 1);
 }
@@ -346,7 +416,7 @@ void ACC_K::printHashMaps()
         level_size = ceil(double(level_size / step));
     }
 
-    intervalQuery(firstOverflow, 41, 11);
+    intervalQuery(firstOverflow, 52, 66);
 }
 
 #endif

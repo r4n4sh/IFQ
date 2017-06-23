@@ -24,7 +24,7 @@ The main function for the two-dimensional HHH program
 #endif
 
 
-#define TEST_UPDATE 1
+//#define TEST_UPDATE 1
 //#define TEST_QUERY 1
 //#define TRY_2
 
@@ -379,11 +379,10 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
-            acck->update(data[i] & masks[0], 1);
-            //acck->update(i, 1);//TODO: testing?
+        	acck->update(data[i] & masks[0], 1);
         }
-       // acck->printHashMaps();
-		endt = clock();
+
+        endt = clock();
 		ftime(&endtb);
 
 		time = ((double)(endt-begint))/CLK_PER_SEC;
@@ -541,6 +540,31 @@ int main(int argc, char * argv[]) {
 
 		printf( "./raw %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
+
+#ifdef ACCK_TESTING
+        for (i = 0; i < n; i++)  {
+            acck->update(data[i] & masks[0], 1);
+        }
+
+		begint = clock();
+		ftime(&begintb);
+        for (i = 0; i < n; i++)  {
+#ifdef TRY_2
+            acck->intervalQuery(data[i] & masks[0], intervals[i/1000], intervals[i/1000] + interval_size);
+#else
+            acck->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
+#endif
+        }
+
+		endt = clock();
+		ftime(&endtb);
+
+		time = ((double)(endt-begint))/CLK_PER_SEC;
+		memory = maxmemusage();
+
+		printf( "./acc %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+#endif
+
 #ifdef ACC1_TESTING
         for (i = 0; i < n; i++)  {
             acc1->update(data[i] & masks[0], 1);
