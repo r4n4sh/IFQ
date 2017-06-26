@@ -111,12 +111,20 @@ void ACC_K::update(unsigned int item, int wieght)
         if (currBlock >= 1 && currBlock <= blocksNumber) {
         	for (int level = 1; level < k - 1; ++level) {
         		if (currBlock % (int)pow(step, level + 1) != 0 && (currBlock - (int)pow(step, level)) > 0 && currBlock % (int)pow(step, level) == 0  && (currBlock - (int)pow(step, level)) % (int)(pow(step, level + 1)) != 0 && ((currBlock) / pow(step, level)) > 1) {
+                    int cell = (int)((currBlock)/ pow(step, level) ) - 2;
+                    if (cell < 0)
+                 	   cell = 0;
 #ifdef ACC_K_DEBUGGING
         			cout << "update level: " << level << " for currBlock: " << currBlock << endl;
-        			cout << "copy level: " << level << " table: " << (int)((currBlock)/ pow(step, level) ) - 2 << " to table: " << (int)((currBlock) / pow(step, level) ) - 1 << endl;
+        			cout << "copy level: " << level << " table: " << cell << " to table: " << (int)((currBlock) / pow(step, level) ) - 1 << endl;
 #endif
-					unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArrLevels[level][(int)((currBlock)/ pow(step, level) ) - 2];
-					unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArrLevels[level][(int)((currBlock) / pow(step, level) ) - 1];
+
+        			unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArrLevels[level][cell];
+
+                    cell = (int)((currBlock) / pow(step, level) ) - 1;
+                    if (cell < 0)
+                 	   cell = 0;
+        			unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArrLevels[level][cell];
 
 					if (!prevL1Table->empty()) {
 						for (auto it = prevL1Table->begin(); it != prevL1Table->end(); ++it) {
@@ -128,18 +136,27 @@ void ACC_K::update(unsigned int item, int wieght)
 							}
 						}
 					}
-					*overflowedArrLevels[level][((int) (currBlock/pow(step, level))) - 1] = *mergedblockTables;
+					*overflowedArrLevels[level][cell] = *mergedblockTables;
         		}
         	}
         	// Always copy tables from previous block in level k -1
 
        		if((currBlock) % (int)pow(step, k -1) == 0 && ((currBlock) / pow(step, k -1) ) != 1) {
+
+   				int cell = (int)((currBlock)/ pow(step, k -1) ) - 2;
+   				if (cell < 0)
+   					cell = 0;
 #ifdef ACC_K_DEBUGGING
         	cout << "update level: " << k -1 << " for currBlock: " << currBlock << endl;
-   			cout << "copy level: " << k -1 << " table: " << (int)((currBlock)/ pow(step, k -1) ) - 2 << " to table: " << (int)((currBlock) / pow(step, k -1) ) - 1 << endl;
+   			cout << "copy level: " << k -1 << " table: " << cell << " to table: " << (int)((currBlock) / pow(step, k -1) ) - 1 << endl;
 #endif
-           		unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArrLevels[k -1][(int)((currBlock)/ pow(step, k -1) ) - 2];
-           		unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArrLevels[k -1][(int)((currBlock) / pow(step, k -1) ) - 1];
+
+   				unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArrLevels[k -1][cell];
+                cell = (int)((currBlock) / pow(step, k -1) ) - 1;
+                if (cell < 0)
+             	   cell = 0;
+
+           		unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArrLevels[k -1][cell];
 
            		if (!prevL1Table->empty()) {
            			for (auto it = prevL1Table->begin(); it != prevL1Table->end(); ++it) {
@@ -151,7 +168,7 @@ void ACC_K::update(unsigned int item, int wieght)
            				}
            			}
            		}
-           		*overflowedArrLevels[k -1][((int) (currBlock/pow(step, k -1))) - 1] = *mergedblockTables;
+           		*overflowedArrLevels[k -1][cell] = *mergedblockTables;
        		}
         }
 
@@ -307,14 +324,18 @@ unsigned int ACC_K::withinFrameFrequency(unsigned int required_block, int itemId
                l_max = ceil(log(required_block) / log(step)) - 1;
        int block = required_block;
 #ifdef ACC_K_DEBUGGING
-       cout << "Block: " << required_block << " l_min: " << l_min << " l_max: " << l_max << endl;
+       cout << "Block: " << required_block << " l_min: " << l_min << " l_max: " << l_max << " step: " << step << endl;
 #endif
        while (l <= l_max) {
+               int cell = (int)floor((block)/pow(step, l)) - 1;
+               if (cell < 0)
+            	   cell = 0;
 #ifdef ACC_K_DEBUGGING
                cout << "lmin: " << l << " l_max: " << l_max << " block: " << block << endl;
-               cout << "table [" << l << "]" << "[" <<  (int)floor((block)/pow(step, l)) - 1 << "]" << endl;
+               cout << "table [" << l << "]" << "[" <<  cell << "]" << endl;
 #endif
-               unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][(int)floor((block)/pow(step, l)) - 1];
+
+               unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][cell];
                if (table->find(itemIdx) != table->end()) {
                        sum += table->at(itemIdx);
                }
@@ -353,7 +374,11 @@ double ACC_K::intervalQuery(unsigned int item, int b1, int b2)
 
 			sum_till_second = withinFrameFrequency(secondBlock, itemIdx);
 
-			unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[k -1][(int)((blocksNumber)/pow(step, k - 1)) - 1];
+            int cell = (int)((blocksNumber)/pow(step, k - 1)) - 1;
+            if (cell < 0)
+         	   cell = 0;
+
+			unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[k -1][cell];
 			if (table->find(itemIdx) != table->end()) {
 				sum_till_second += table->at(itemIdx);
 			}
@@ -373,7 +398,11 @@ double ACC_K::intervalQuery(unsigned int item, int b1, int b2)
 #ifdef ACC_K_DEBUGGING
 					cout << "l: " << l << " location: " << location << " offset: " << offset << endl;
 #endif
-					unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][(int)((location)/pow(step, l)) - 1];
+		               int cell = (int)((location)/pow(step, l)) - 1;
+		               if (cell < 0)
+		            	   cell = 0;
+
+					unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][cell];
 					if (table->find(itemIdx) != table->end()) {
 						sum_till_first += table->at(itemIdx);
 					}

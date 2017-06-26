@@ -77,7 +77,22 @@ void ACC::update(unsigned int item, int wieght)
         indexHead = (indexHead + 1) % indexSize;
         index->at(indexHead) = 0;
         if (currBlock >= 1 && currBlock < blocksNumber) {
-        	*(overflowedArr[currBlock]) = *(overflowedArr[currBlock - 1]);
+        	//*(overflowedArr[currBlock]) = *(overflowedArr[currBlock - 1]);
+
+       		unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArr[currBlock - 1];
+       		unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArr[currBlock];
+
+       		if (!prevL1Table->empty()) {
+       			for (auto it = prevL1Table->begin(); it != prevL1Table->end(); ++it) {
+       				if (mergedblockTables->find(it->first) != mergedblockTables->end()) {
+       					int prevValue = mergedblockTables->find(it->first)->second;
+       					mergedblockTables->at(it->first) = prevValue + it->second;
+       				} else {
+       					mergedblockTables->insert(pair<unsigned int, unsigned int>(it->first, it->second));
+       				}
+       			}
+       		}
+       		*overflowedArr[currBlock] = *mergedblockTables;
         }
 
     }

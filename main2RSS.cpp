@@ -24,7 +24,7 @@ The main function for the two-dimensional HHH program
 #endif
 
 
-//#define TEST_UPDATE 1
+#define TEST_UPDATE 1
 //#define TEST_QUERY 1
 //#define TRY_2
 
@@ -164,6 +164,7 @@ int main(int argc, char * argv[]) {
 		int counters = 100;
 		int threshold = 1000;
 		int n = 100000;
+		int k =1;
 		double time;
 		int memory;
 		int i;
@@ -203,6 +204,16 @@ int main(int argc, char * argv[]) {
 					return -1;
 				}
 				counters = atoi(argv[i]);
+			}
+			else if (strcmp(argv[i], "-k") == 0)
+			{
+				i++;
+				if (i >= argc)
+				{
+					std::cout  << "Missing k" << std::endl;
+					return -1;
+				}
+				k = atoi(argv[i]);
 			}
 			else if (strcmp(argv[i], "-t") == 0)
 			{
