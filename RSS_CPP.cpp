@@ -35,7 +35,7 @@ RSS_CPP::RSS_CPP(float fPhi, int M, float gamma)
 	if (m_stepSize <= 0)
 		//throw std::exception::exception("bad config, make sure gamma >= 0");
 	assert(m_stepSize);
-	assert(gamma > 0);
+//	assert(gamma > 0);
 	m_nrCounters *= (1 + gamma);
 
 	m_a = (long long)698124007;

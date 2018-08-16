@@ -12,8 +12,7 @@
 #include "HIT.hpp"
 
 using namespace std;
-
-#ifdef DEBUGGING
+#ifdef DEBUGGING2
 int testArr[8] = {1,2,1,2,1,0,1,1};
 unsigned int firstOverflowed;
 unsigned int secondtOverflowed;
@@ -41,12 +40,15 @@ static inline int computeBlockLevels(unsigned int n)
 void HIT::populateCurrSkipListLevel(unsigned int blockNumber, unsigned int itemIdx)
 {
      unsigned int block_l;
+#ifdef DEBUGGING2
+     cout << "populateCurrSkipListLevel Levels:" << computeBlockLevels(blockNumber) << " blockNumber: " << blockNumber << endl;
+#endif
      for (int level = 0; level < computeBlockLevels(blockNumber); ++level) {
 
     	 block_l = levelToidx[level] + ((blockNumber - 1) >> level);
 
 #ifdef DEBUGGING
-    cout << "Populate skiplist level "<< level << " for block: " << blockNumber << " item index: " << itemIdx << endl;
+    cout << "populateCurrSkipListLevel:: Populate skiplist level "<< level << " for block: " << blockNumber << " item index: " << itemIdx << endl;
     cout << "index in skiplist: " << block_l << endl;
 #endif
 
@@ -58,15 +60,16 @@ void HIT::populateCurrSkipListLevel(unsigned int blockNumber, unsigned int itemI
         	 foundedTable->at(itemIdx) = foundedTable->at(itemIdx) + 1;
 
          skiplistMap[block_l] = foundedTable;
-     }
+
 
 #ifdef DEBUGGING
-     printf("block: %d level: 0 ", blockNumber);
+     printf("block: %d level: %d indexofSkiplist: %d", blockNumber, level, block_l);
      cout << "foundedTable contains: ";
      for (auto it = foundedTable->begin(); it != foundedTable->end(); ++it )
        cout << " " << it->first << ":" << it->second;
      cout << endl;
 #endif
+     }
 }
 
 
@@ -87,7 +90,7 @@ void HIT::populateSkipListLevels(unsigned int blockNumber)
     	unordered_map<unsigned int, unsigned int>* prevLevelTable = skiplistMap[prevLevelBlock];
     	unordered_map<unsigned int, unsigned int>* prevBlockTable = skiplistMap[prevBlock];
 
-    	unordered_map<unsigned int, unsigned int>* mergedblockTables;
+    	unordered_map<unsigned int, unsigned int>* mergedblockTables = new unordered_map<unsigned int, unsigned int> (maxOverflows);
 
     	if ( prevBlockTable->empty()) {
     		if (prevLevelTable->empty()) {
@@ -99,10 +102,18 @@ void HIT::populateSkipListLevels(unsigned int blockNumber)
 #ifdef DEBUGGING
     		cout << "prev block table is empty but prev level is Not" << endl;
 #endif
-    		mergedblockTables = prevLevelTable;
+
+    		for (auto it = prevLevelTable->begin(); it != prevLevelTable->end(); ++it) {
+    			mergedblockTables->insert(pair<unsigned int, unsigned int>(it->first, it->second));
+    		}
+
     	} else {
 
-    		mergedblockTables = prevBlockTable;
+
+    		for (auto it = prevBlockTable->begin(); it != prevBlockTable->end(); ++it) {
+    			mergedblockTables->insert(pair<unsigned int, unsigned int>(it->first, it->second));
+    		}
+
 
 #ifdef DEBUGGING
             cout << "prevBlockTable contains:";
@@ -135,6 +146,17 @@ void HIT::populateSkipListLevels(unsigned int blockNumber)
         	cout << " " << it->first << ":" << it->second;
         cout << endl;
 #endif
+
+#ifdef DEBUGGING
+        unordered_map<unsigned int, unsigned int>* tmpfoundedTable = skiplistMap[1938];
+
+		printf("!!!!! block: 64 level: 5 ");
+     cout << "!!!!! contains: ";
+     for (auto it = tmpfoundedTable->begin(); it != tmpfoundedTable->end(); ++it )
+     	cout << " " << it->first << ":" << it->second;
+     cout << endl;
+#endif
+
     }
 }
 
@@ -157,7 +179,7 @@ HIT::HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     indexHead = blocksNumber - 1;
     index = new vector<int> (indexSize); // 0 means end of block
     overflowsElements = new unsigned int[maxOverflows];
-    rss = new RSS_CPP(epsilon, m, gamma);//y
+    rss = new RSS_CPP(epsilon/6., m, gamma);//y
     threshold = ceil(windowSize*m*epsilon / 6.f); // W*M/k
     totalOverflows = new unordered_map<unsigned int, unsigned int> (maxOverflows);//B TODO: allocate static?
 
@@ -169,7 +191,7 @@ HIT::HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     for(int i = 0 ; i < skiplistSize ; i++)
     	skiplistMap[i] =  new unordered_map<unsigned int, unsigned int> (maxOverflows);
 
-    int levelToidxSize = ceil(log(blocksNumber));
+    int levelToidxSize = ceil(log2(blocksNumber));
     levelToidx = new unsigned int[levelToidxSize + 1];
 
     for(int i = 0 ; i < levelToidxSize ; i++) {
@@ -200,8 +222,7 @@ void HIT::update(unsigned int item, int wieght)
 #ifdef DEBUGGING
 	cout << "*** UPDATE for frame: " << frameItems << "***" << endl;
 #endif
-	int blockNumber = (floor((double)frameItems / (double)blockSize));
-	blockNumber = (blockNumber % (blocksNumber)) + 1;
+	int blockNumber = ceil(((double)frameItems / (double)blockSize));
 
 	/* Last frame in the current block */
     if ((frameItems % blockSize) == 0) {
@@ -239,7 +260,7 @@ void HIT::update(unsigned int item, int wieght)
     // Add item to RSS_CPP
     this->rss->update(item, wieght);
 
-#ifdef DEBUGGING
+#ifdef DEBUGGING2
     if (testArr[blockNumber -1]) {
 
     	cout << "overflow for block number: " << blockNumber << endl;
@@ -268,6 +289,7 @@ void HIT::update(unsigned int item, int wieght)
     	++idx;
 #else
     // overflow
+    //	printf("IS OVERFLOW? : %d\n", this->rss->query(item));
         if ((this->rss->query(item)%threshold) == 0) {
 #endif
         head = (head + 1) % maxOverflows;
@@ -284,7 +306,7 @@ void HIT::update(unsigned int item, int wieght)
             totalOverflows->insert(make_pair<unsigned int, unsigned int>((unsigned int)item,1));
         else
             totalOverflows->at(item) = totalOverflows->at(item) + 1;
-#ifdef DEBUGGING
+#ifdef DEBUGGING2
         populateCurrSkipListLevel(blockNumber, idx);
 #else
         populateCurrSkipListLevel(blockNumber, idToIDx.at(item));
@@ -320,25 +342,42 @@ double HIT::query(unsigned int item)
 
 unsigned int HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, unsigned int b1)
 {
-	unsigned int b = b1;
+	int b = b1;
     unsigned int count = 0;
-    unsigned int d = 1 + (b1 - b2) % (blocksNumber + 1);
+    int d = 1 + (b1 - b2) % (blocksNumber + 1);
 #ifdef DEBUGGING
      cout << "d: " << d << " b: " << b << endl;
 #endif
+
     while (d > 0) {
     	int level = min((computeBlockLevels(b) - 1), (int)floor(log2(d)));
+#ifdef DEBUGGING
+    	cout << "level: " << level <<" d: "<< d << endl;
+#endif
 
     	unsigned int block = levelToidx[level] +  ((b -1) >> level);
 
 #ifdef DEBUGGING
-    	cout << "level: " << level << " block: " << b << endl;
+    	cout << "level: " << level << " block: " << b << " value: " << skiplistMap[block]->at(itemIdx) << " index of skiplist: " << block << endl;
 #endif
 
+
+        unordered_map<unsigned int, unsigned int>* foundedTable = skiplistMap[block];
+
+
+#ifdef DEBUGGING
+		printf("### block: %d level: %d ", b, level);
+        cout << "#### contains: ";
+        for (auto it = foundedTable->begin(); it != foundedTable->end(); ++it )
+        	cout << " " << it->first << ":" << it->second;
+        cout << endl;
+#endif
 
 		if(skiplistMap[block]->find(itemIdx) != skiplistMap[block]->end()) {
 			count += skiplistMap[block]->at(itemIdx);
 		}
+
+
 
     	int power_level = 1 << level;
     	d = d - power_level;
@@ -353,13 +392,12 @@ unsigned int HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, un
 double HIT::intervalQuery(unsigned int item, int b2, int b1)
 {
 	int firstBlock = ((int) ceil((double) b2 / (double) blockSize) % (int) blocksNumber) + 1;
-	int secondBlock = ((int) floor((double) b1 / (double)blockSize) % (int) blocksNumber) + 1;
-
+	int secondBlock = ((int) ceil((double) b1 / (double)blockSize) % (int) blocksNumber);
 	unsigned int minOverFlows = 0;
 	int itemIdx;
 #ifdef DEBUGGING
 	//printf("item: %d\n", item);
-	printf("second block: %d first block: %d\n", secondBlock, firstBlock); //TODO:
+	printf("first block: %d, second block: %d\n", firstBlock, secondBlock); //TODO:
 #endif
 	unordered_map<unsigned int,unsigned int>::const_iterator foundedItem = idToIDx.find(item);
 	if (foundedItem == idToIDx.end()) // item has no overflows
@@ -367,15 +405,15 @@ double HIT::intervalQuery(unsigned int item, int b2, int b1)
 	else {
 		itemIdx = idToIDx.at(item);
 		minOverFlows = partialIntervalQuery(itemIdx, firstBlock, secondBlock);
-
 #ifdef DEBUGGING
 		cout << "number of overflow: " << minOverFlows << endl;
 #endif
 	}
-	return threshold * (minOverFlows + 1);
+	//return threshold * (minOverFlows + 1); EMP_ERROR TEST
+	return minOverFlows;
 }
 
-#ifdef DEBUGGING
+#ifdef DEBUGGING2
 double HIT::testIntervalQuery(unsigned int b2, unsigned int b1)
 {
 	unsigned int overflowed = firstOverflowed;

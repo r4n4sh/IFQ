@@ -10,6 +10,8 @@ The main function for the two-dimensional HHH program
 #include "hhh2RSS.hpp"
 #include <sys/timeb.h>
 #include <cstring>
+#include <cmath>
+
 
 #ifdef PARALLEL
 #include <omp.h>
@@ -24,15 +26,16 @@ The main function for the two-dimensional HHH program
 #endif
 
 
-#define TEST_UPDATE 1
-//#define TEST_QUERY 1
-//#define TRY_2
+//#define TEST_UPDATE 1
+#define TEST_QUERY 1
+#define TRY_2
+//#define EMP_ERROR
 
 
-//#define HIT_TESTING 1
+#define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
 //#define ACC_TESTING 1
-#define ACCK_TESTING 1
+//#define ACCK_TESTING 1
 //#define ACC1_TESTING 1
 //#define RAW_TESTING 1
 
@@ -182,6 +185,7 @@ int main(int argc, char * argv[]) {
 		int window_size = 1600;
 		int interval_1;
 		int interval_2;
+		double emp_error = 0;
 
 		for (int i = 1; i < argc; ++i)
 		{
@@ -296,23 +300,26 @@ int main(int argc, char * argv[]) {
 			}
 		}
 
+		gamma = 0;
+		M = 1;
 
 		if(n / counters >= threshold) {
 			printf("Unacceptable parameters: eps*n >= theshold\n");
 			return 0;
 		}
 
-		interval_size = ceil(window_size / 100);
+#ifdef EMP_ERROR
+	//	window_size = 1 << 20;
+#endif
+//		interval_size = ceil(window_size / 100); 1% of window_size
+		interval_size = ceil(window_size / 10); // 10% of window_size
+
 		epsilon = (double)1/(double)counters;
 		data = (unsigned long *) malloc(sizeof(unsigned long) * n);
 		weights = (unsigned *) malloc(sizeof(unsigned) * n);
-#ifdef TEST_QUERY
-#ifdef TRY_2
+#if defined(TEST_QUERY) | defined(EMP_ERROR)
 		int interval_arr_size = ceil(n/1000);
 		intervals = (unsigned *) malloc(sizeof(unsigned) * interval_arr_size);
-#else
-		intervals = (unsigned *) malloc(sizeof(unsigned) * n);
-#endif
 #endif
 
 
@@ -332,24 +339,112 @@ int main(int argc, char * argv[]) {
 		ACC1 *acc1 = new ACC1(window_size, gamma, M, epsilon);
 #endif
 #ifdef ACCK_TESTING
-		ACC_K *acck = new ACC_K(window_size, gamma, M, epsilon, 3);
+		ACC_K *acck = new ACC_K(window_size, gamma, M, epsilon, 4);
 #endif
+
+		int* window = new int[window_size];
 
 		for (i = 0; i < n; i++) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			data[i] = (unsigned long)256*((unsigned long)256*((unsigned long)256*w + x) + y) + z;
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			fscanf(fp, "%d", weights+i);
-#ifdef TEST_QUERY
-#ifdef TRY_2
+#if defined(TEST_QUERY) | defined(EMP_ERROR)
 			int interval_idx = i/1000;
-			intervals[interval_idx] = 1 + (int)rand() % (int)(0.99 * window_size);
-#else
-			intervals[i] = 1 + (int)rand() % (int)(0.99 * window_size);
+			intervals[interval_idx] = 1 + (int)rand() % (int)(0.88 * window_size);
+			//printf("interval_idx: %d\n", intervals[interval_idx]);
 #endif
-#endif
-		}
 
+#ifdef EMP_ERROR
+			double estimated, curr_error = 0;
+			window[i%window_size] = data[i];
+			//printf("window[%d] = %d \n", i%window_size, window[i%window_size] );
+#ifdef HIT_TESTING
+			hit->update(data[i], 1);
+#endif
+#ifdef BASE_WRSS_ALGO
+			bwrss->update(data[i], 1);
+#endif
+#ifdef ACC_TESTING
+			acc->update(data[i], 1);
+#endif
+#ifdef RAW_TESTING
+			raw->update(data[i], 1);
+#endif
+#ifdef ACC1_TESTING
+			acc1->update(data[i], 1);
+#endif
+#ifdef ACCK_TESTING
+			acck->update(data[i], 1);
+#endif
+		//if (i > 1500000 && !(i %100000)) {
+		int debug = 0;
+
+		if (i > (n/10) && !debug) {
+			// count it in window
+			double exact = 0;
+			//printf("Query interval: first idx: %d, second idx: %d\n", intervals[interval_idx], intervals[interval_idx] + interval_size, window_size);
+
+
+			if (intervals[interval_idx] + interval_size <= i) {
+				//printf("[%d] count from window, first idex: %d, secoond idx: %d, window_size: %d\n", i, intervals[interval_idx], intervals[interval_idx] + interval_size, window_size);
+
+				for (int k=intervals[interval_idx]; k<intervals[interval_idx] + interval_size; ++k) {
+					if (window[k] == data[i]) {
+						exact += 1;
+					}
+				}
+				//printf("EXACT: %f\n", exact);
+#ifdef HIT_TESTING
+				estimated = hit->intervalQuery(data[i], intervals[interval_idx], intervals[interval_idx] + interval_size);
+#endif
+#ifdef BASE_WRSS_ALGO
+				estimated = bwrss->intervalQuery(data[i], intervals[interval_idx], intervals[interval_idx] + interval_size);
+#endif
+#ifdef ACC_TESTING
+				estimated = acc->intervalQuery(data[i], intervals[interval_idx], intervals[interval_idx] + interval_size);
+#endif
+#ifdef RAW_TESTING
+				printf("before query raw\n");
+				estimated = raw->intervalQuery(data[i], intervals[interval_idx], intervals[interval_idx] + interval_size);
+#endif
+#ifdef ACC1_TESTING
+				estimated = acc1->intervalQuery(data[i], intervals[interval_idx], intervals[interval_idx] + interval_size);
+#endif
+#ifdef ACCK_TESTING
+				estimated = acck->intervalQuery(data[i], intervals[interval_idx], intervals[interval_idx] + interval_size);
+#endif
+
+				//printf("[%d] estimated: %f\n",i, estimated);
+				//printf("[%d] exact: %f\n",i, exact);
+				curr_error = exact - estimated;
+				printf("[%d] estimated: %f exact: %f curr_error: %f, interval: [%d, %d]\n", i, estimated, exact, curr_error, intervals[interval_idx],intervals[interval_idx] + interval_size);
+				curr_error = pow(curr_error, 2);
+				emp_error += curr_error;
+				}
+			}
+		}
+		emp_error = sqrt((emp_error/n));
+
+#ifdef HIT_TESTING
+		printf( "[%d] ./hit empirical error: %f\n", i , emp_error);
+#endif
+#ifdef BASE_WRSS_ALGO
+		printf( "./baseWRSS empirical error: %f\n",emp_error);
+#endif
+#ifdef ACC_TESTING
+		printf( "./acc empirical error: %f\n",emp_error);
+#endif
+#ifdef RAW_TESTING
+		printf( "./raw empirical error: %f\n",emp_error);
+#endif
+#ifdef ACC1_TESTING
+		printf( "./acc1 empirical error: %f\n",emp_error);
+#endif
+#ifdef ACCK_TESTING
+		printf( "./acck empirical error: %f\n",emp_error);
+#endif
+#endif
 
 #ifdef TEST_UPDATE
 #ifdef HIT_TESTING
@@ -568,12 +663,10 @@ int main(int argc, char * argv[]) {
         }
 
 		endt = clock();
-		ftime(&endtb);
-
-		time = ((double)(endt-begint))/CLK_PER_SEC;
+		ftimeintervals[interval_idx]	time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
 
-		printf( "./acc %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+		printf( "./acck %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
 
 #ifdef ACC1_TESTING
@@ -601,10 +694,13 @@ int main(int argc, char * argv[]) {
 		printf( "./acc1 %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
 #endif
-#ifdef TEST_QUERY
+
+#if defined(TEST_QUERY) | defined (EMP_ERROR)
 		free(intervals);
 #endif
+#ifndef EMP_ERROR
 		free(data);
+#endif
 #ifdef ACC1_TESTING
 		free(acc1);
 #endif
@@ -623,3 +719,4 @@ int main(int argc, char * argv[]) {
 		return 0;
 }
 
+}

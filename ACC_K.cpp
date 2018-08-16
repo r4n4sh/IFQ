@@ -111,20 +111,13 @@ void ACC_K::update(unsigned int item, int wieght)
         if (currBlock >= 1 && currBlock <= blocksNumber) {
         	for (int level = 1; level < k - 1; ++level) {
         		if (currBlock % (int)pow(step, level + 1) != 0 && (currBlock - (int)pow(step, level)) > 0 && currBlock % (int)pow(step, level) == 0  && (currBlock - (int)pow(step, level)) % (int)(pow(step, level + 1)) != 0 && ((currBlock) / pow(step, level)) > 1) {
-                    int cell = (int)((currBlock)/ pow(step, level) ) - 2;
-                    if (cell < 0)
-                 	   cell = 0;
 #ifdef ACC_K_DEBUGGING
         			cout << "update level: " << level << " for currBlock: " << currBlock << endl;
-        			cout << "copy level: " << level << " table: " << cell << " to table: " << (int)((currBlock) / pow(step, level) ) - 1 << endl;
+        			cout << "copy level: " << level << " table: " << (int)((currBlock)/ pow(step, level) ) - 2 << " to table: " << (int)((currBlock) / pow(step, level) ) - 1 << endl;
 #endif
 
-        			unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArrLevels[level][cell];
-
-                    cell = (int)((currBlock) / pow(step, level) ) - 1;
-                    if (cell < 0)
-                 	   cell = 0;
-        			unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArrLevels[level][cell];
+        			unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArrLevels[level][(int)((currBlock)/ pow(step, level) ) - 2];
+        			unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArrLevels[level][(int)((currBlock) / pow(step, level) ) - 1];
 
 					if (!prevL1Table->empty()) {
 						for (auto it = prevL1Table->begin(); it != prevL1Table->end(); ++it) {
@@ -136,27 +129,20 @@ void ACC_K::update(unsigned int item, int wieght)
 							}
 						}
 					}
-					*overflowedArrLevels[level][cell] = *mergedblockTables;
+					*overflowedArrLevels[level][(int)((currBlock) / pow(step, level) ) - 1] = *mergedblockTables;
         		}
         	}
         	// Always copy tables from previous block in level k -1
 
-       		if((currBlock) % (int)pow(step, k -1) == 0 && ((currBlock) / pow(step, k -1) ) != 1) {
+       		if((currBlock) % (int)pow(step, k -1) == 0 && ((currBlock) / pow(step, k -1) ) > 1) {
 
-   				int cell = (int)((currBlock)/ pow(step, k -1) ) - 2;
-   				if (cell < 0)
-   					cell = 0;
 #ifdef ACC_K_DEBUGGING
         	cout << "update level: " << k -1 << " for currBlock: " << currBlock << endl;
-   			cout << "copy level: " << k -1 << " table: " << cell << " to table: " << (int)((currBlock) / pow(step, k -1) ) - 1 << endl;
+   			cout << "copy level: " << k -1 << " table: " << (int)((currBlock)/ pow(step, k -1) ) - 2 << " to table: " << (int)((currBlock) / pow(step, k -1) ) - 1 << endl;
 #endif
 
-   				unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArrLevels[k -1][cell];
-                cell = (int)((currBlock) / pow(step, k -1) ) - 1;
-                if (cell < 0)
-             	   cell = 0;
-
-           		unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArrLevels[k -1][cell];
+   				unordered_map<unsigned int, unsigned int>* prevL1Table = overflowedArrLevels[k -1][(int)((currBlock)/ pow(step, k -1) ) - 2];
+           		unordered_map<unsigned int, unsigned int>* mergedblockTables = overflowedArrLevels[k -1][(int)((currBlock) / pow(step, k -1) ) - 1];
 
            		if (!prevL1Table->empty()) {
            			for (auto it = prevL1Table->begin(); it != prevL1Table->end(); ++it) {
@@ -168,7 +154,7 @@ void ACC_K::update(unsigned int item, int wieght)
            				}
            			}
            		}
-           		*overflowedArrLevels[k -1][cell] = *mergedblockTables;
+           		*overflowedArrLevels[k -1][(int)((currBlock) / pow(step, k -1) ) - 1] = *mergedblockTables;
        		}
         }
 
@@ -322,6 +308,10 @@ unsigned int ACC_K::withinFrameFrequency(unsigned int required_block, int itemId
                l_max = k -1;
        else
                l_max = ceil(log(required_block) / log(step)) - 1;
+
+       if (l_max > k -1)
+               l_max = k -1;
+
        int block = required_block;
 #ifdef ACC_K_DEBUGGING
        cout << "Block: " << required_block << " l_min: " << l_min << " l_max: " << l_max << " step: " << step << endl;
@@ -365,7 +355,7 @@ double ACC_K::intervalQuery(unsigned int item, int b1, int b2)
 	if (foundedItem == idToIDx.end()) // item has no overflows
 		sum = 0;
 	else {
-		itemIdx = idToIDx.at(item);
+		itemIdx = idToIDx.at(item);// founded->second
 
 		if (firstBlock <= secondBlock) {
 			sum_till_second = withinFrameFrequency(secondBlock, itemIdx);
@@ -377,12 +367,10 @@ double ACC_K::intervalQuery(unsigned int item, int b1, int b2)
             int cell = (int)((blocksNumber)/pow(step, k - 1)) - 1;
             if (cell < 0)
          	   cell = 0;
-
 			unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[k -1][cell];
 			if (table->find(itemIdx) != table->end()) {
 				sum_till_second += table->at(itemIdx);
 			}
-
 			int offset = ((int)(floor((double)frameItems / (double)blockSize)) % (int)(blocksNumber)) + 1;
 			int location = firstBlock - 1;
 			int l = 1;
@@ -393,37 +381,35 @@ double ACC_K::intervalQuery(unsigned int item, int b1, int b2)
 
 			l -= 1;
 
+			while (location >= offset +1 && l<= k-1) {
+#ifdef ACC_K_DEBUGGING
+				cout << "l: " << l << " location: " << location << " offset: " << offset << endl;
+#endif
+	               int cell = (int)((location)/pow(step, l)) - 1;
+	               if (cell < 0)
+	            	   cell = 0;
+
+				unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][cell];
+				if (table->find(itemIdx) != table->end()) {
+					sum_till_first += table->at(itemIdx);
+				}
+				++l;
+				location = floor(location / pow(step, l)) * pow(step, l);
+			}
+
+			//read ghost from l till k -1
+
 			while (l <= k -1) {
-				while (location >= offset +1) {
 #ifdef ACC_K_DEBUGGING
-					cout << "l: " << l << " location: " << location << " offset: " << offset << endl;
+				cout << "reading ghost_tables["<<l<<"]" << endl;
 #endif
-		               int cell = (int)((location)/pow(step, l)) - 1;
-		               if (cell < 0)
-		            	   cell = 0;
-
-					unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][cell];
-					if (table->find(itemIdx) != table->end()) {
-						sum_till_first += table->at(itemIdx);
-					}
-					++l;
-					location = floor(location / pow(step, l)) * pow(step, l);
+				unordered_map<unsigned int, unsigned int>* table = ghost_tables[l];
+				if (table->find(itemIdx) != table->end()) {
+					sum_till_first += table->at(itemIdx);
 				}
-				//read ghost from l till k -1
-
-				while (l <= k -1) {
-#ifdef ACC_K_DEBUGGING
-					cout << "reading ghost_tables["<<l<<"]" << endl;
-#endif
-					unordered_map<unsigned int, unsigned int>* table = ghost_tables[l];
-					if (table->find(itemIdx) != table->end()) {
-						sum_till_first += table->at(itemIdx);
-					}
-					++l;
-				}
+				++l;
 			}
 		}
-
 		sum = sum_till_second - sum_till_first;
 	}
 	return threshold * (sum + 1);
