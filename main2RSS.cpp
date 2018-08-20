@@ -27,10 +27,10 @@ The main function for the two-dimensional HHH program
 
 
 //#define TEST_UPDATE 1
-#define TEST_QUERY 1
+//#define TEST_QUERY 1
 #define TRY_2
 //#define EMP_ERROR
-
+#define new_emp
 
 #define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
@@ -318,7 +318,15 @@ int main(int argc, char * argv[]) {
 		data = (unsigned long *) malloc(sizeof(unsigned long) * n);
 		weights = (unsigned *) malloc(sizeof(unsigned) * n);
 #if defined(TEST_QUERY) | defined(EMP_ERROR)
-		int interval_arr_size = ceil(n/1000);
+		int range = 10;
+		int interval_arr_size = ceil(n/range);
+		intervals = (unsigned *) malloc(sizeof(unsigned) * interval_arr_size);
+#endif
+
+#ifdef new_emp
+		int range = 10;
+
+		int interval_arr_size = ceil(n/range);
 		intervals = (unsigned *) malloc(sizeof(unsigned) * interval_arr_size);
 #endif
 
@@ -342,7 +350,7 @@ int main(int argc, char * argv[]) {
 		ACC_K *acck = new ACC_K(window_size, gamma, M, epsilon, 4);
 #endif
 
-		int* window = new int[window_size];
+		unsigned long* window = new unsigned long[window_size];
 
 		for (i = 0; i < n; i++) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
@@ -350,9 +358,13 @@ int main(int argc, char * argv[]) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			fscanf(fp, "%d", weights+i);
 #if defined(TEST_QUERY) | defined(EMP_ERROR)
-			int interval_idx = i/1000;
+			int interval_idx = i/range;
 			intervals[interval_idx] = 1 + (int)rand() % (int)(0.88 * window_size);
 			//printf("interval_idx: %d\n", intervals[interval_idx]);
+#endif
+
+#ifdef new_emp
+			window[i%window_size] = data[i];
 #endif
 
 #ifdef EMP_ERROR
@@ -380,7 +392,9 @@ int main(int argc, char * argv[]) {
 		//if (i > 1500000 && !(i %100000)) {
 		int debug = 0;
 
-		if (i > (n/10) && !debug) {
+		//if (i > (n/10) && !debug) {
+		if (true) {
+
 			// count it in window
 			double exact = 0;
 			//printf("Query interval: first idx: %d, second idx: %d\n", intervals[interval_idx], intervals[interval_idx] + interval_size, window_size);
@@ -444,7 +458,63 @@ int main(int argc, char * argv[]) {
 #ifdef ACCK_TESTING
 		printf( "./acck empirical error: %f\n",emp_error);
 #endif
+#else
+	}
 #endif
+
+
+
+
+
+
+
+
+
+
+
+#ifdef new_emp
+		double estimated, curr_error = 0;
+		double exact = 0;
+		int interval_idx = 0;
+
+        for (i = 0; i < n; i++)  {
+            hit->update(data[i] & masks[0], 1);
+        }
+
+        interval_idx = 3;
+		for (int k=intervals[interval_idx]; k<intervals[interval_idx] + interval_size; ++k) {
+			if (window[k] == data[i-1]) {
+				exact += 1;
+			}
+		}
+
+		estimated = hit->intervalQuery(data[i-1], 0, 10);
+
+		curr_error = exact - estimated;
+		printf("[%d] estimated: %f exact: %f curr_error: %f, interval: [%d, %d]\n", i, estimated, exact, curr_error, intervals[interval_idx],intervals[interval_idx] + interval_size);
+		curr_error = pow(curr_error, 2);
+		emp_error += curr_error;
+				
+		emp_error = sqrt((emp_error/n));
+
+		printf( "[%d] ./hit empirical error: %f\n", i , emp_error);
+
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #ifdef TEST_UPDATE
 #ifdef HIT_TESTING
@@ -560,7 +630,7 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
 #ifdef TRY_2
-            hit->intervalQuery(data[i] & masks[0], intervals[i/1000], intervals[i/1000] + interval_size);
+            hit->intervalQuery(data[i] & masks[0], intervals[i/range], intervals[i/range] + interval_size);
 #else
             hit->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
 #endif
@@ -586,7 +656,7 @@ int main(int argc, char * argv[]) {
 
         for (i = 0; i < n; i++)  {
 #ifdef TRY_2
-            acc->intervalQuery(data[i] & masks[0], intervals[i/1000], intervals[i/1000] + interval_size);
+            acc->intervalQuery(data[i] & masks[0], intervals[i/range], intervals[i/range] + interval_size);
 #else
             acc->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
 #endif
@@ -632,7 +702,7 @@ int main(int argc, char * argv[]) {
 
         for (i = 0; i < n; i++)  {
 #ifdef TRY_2
-            raw->intervalQuery(data[i] & masks[0], intervals[i/1000], intervals[i/1000] + interval_size);
+            raw->intervalQuery(data[i] & masks[0], intervals[i/range], intervals[i/range] + interval_size);
 #else
             raw->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
 #endif
@@ -656,7 +726,7 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
 #ifdef TRY_2
-            acck->intervalQuery(data[i] & masks[0], intervals[i/1000], intervals[i/1000] + interval_size);
+            acck->intervalQuery(data[i] & masks[0], intervals[i/range], intervals[i/range] + interval_size);
 #else
             acck->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
 #endif
@@ -679,7 +749,7 @@ int main(int argc, char * argv[]) {
 
         for (i = 0; i < n; i++)  {
 #ifdef TRY_2
-            acc1->intervalQuery(data[i] & masks[0], intervals[i/1000], intervals[i/1000] + interval_size);
+            acc1->intervalQuery(data[i] & masks[0], intervals[i/range], intervals[i/range] + interval_size);
 #else
             acc1->intervalQuery(data[i] & masks[0], intervals[i], intervals[i] + interval_size);
 #endif
@@ -719,4 +789,3 @@ int main(int argc, char * argv[]) {
 		return 0;
 }
 
-}

@@ -172,6 +172,7 @@ HIT::HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     this->blocksNumber = windowSize / blockSize;
     this->m = m;
     this->epsilon = epsilon;
+    lastBlock = 1;
 
     maxOverflows = min(blocksNumber * 2, windowSize);
     indexSize = maxOverflows + blocksNumber;
@@ -239,6 +240,7 @@ void HIT::update(unsigned int item, int wieght)
 #endif
         	populateSkipListLevels(blockNumber);
         }
+        lastBlock = 1 + (lastBlock % (int) blockNumber);
     }
 
     // Remove oldest element in oldest block
@@ -355,12 +357,15 @@ unsigned int HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, un
     	cout << "level: " << level <<" d: "<< d << endl;
 #endif
 
-    	unsigned int block = levelToidx[level] +  ((b -1) >> level);
+    unsigned int block;
+    if (b <= 0)
+        block = levelToidx[level];
+    else
+        block = levelToidx[level] +  ((b -1) >> level);
 
 #ifdef DEBUGGING
     	cout << "level: " << level << " block: " << b << " value: " << skiplistMap[block]->at(itemIdx) << " index of skiplist: " << block << endl;
 #endif
-
 
         unordered_map<unsigned int, unsigned int>* foundedTable = skiplistMap[block];
 
@@ -383,16 +388,19 @@ unsigned int HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, un
     	d = d - power_level;
     	b = b - power_level;
 
-    	if (b == 0)
+    	if (b <= 0)
     		b = blocksNumber;
      }
      return count;
 }
 
-double HIT::intervalQuery(unsigned int item, int b2, int b1)
+double HIT::intervalQuery(unsigned int item, int i, int j)
 {
-	int firstBlock = ((int) ceil((double) b2 / (double) blockSize) % (int) blocksNumber) + 1;
-	int secondBlock = ((int) ceil((double) b1 / (double)blockSize) % (int) blocksNumber);
+	//int firstBlock = ((int) ceil((double) b2 / (double) blockSize) % (int) blocksNumber) + 1;
+	//int secondBlock = ((int) ceil((double) b1 / (double)blockSize) % (int) blocksNumber);
+    int first = ((int)(lastBlock - i) % (int) (blocksNumber+1));
+    int last = ((int)(lastBlock - j) % (int) (blocksNumber+1));
+
 	unsigned int minOverFlows = 0;
 	int itemIdx;
 #ifdef DEBUGGING
@@ -404,7 +412,7 @@ double HIT::intervalQuery(unsigned int item, int b2, int b1)
 		minOverFlows = 0;
 	else {
 		itemIdx = idToIDx.at(item);
-		minOverFlows = partialIntervalQuery(itemIdx, firstBlock, secondBlock);
+		minOverFlows = partialIntervalQuery(itemIdx, last, first);
 #ifdef DEBUGGING
 		cout << "number of overflow: " << minOverFlows << endl;
 #endif
@@ -412,6 +420,39 @@ double HIT::intervalQuery(unsigned int item, int b2, int b1)
 	//return threshold * (minOverFlows + 1); EMP_ERROR TEST
 	return minOverFlows;
 }
+
+
+
+
+/*
+
+double HIT::intervalQuery(unsigned int item, int b2, int b1)
+{
+    int firstBlock = ((int) ceil((double) b2 / (double) blockSize) % (int) blocksNumber) + 1;
+    int secondBlock = ((int) ceil((double) b1 / (double)blockSize) % (int) blocksNumber);
+    unsigned int minOverFlows = 0;
+    int itemIdx;
+#ifdef DEBUGGING
+    //printf("item: %d\n", item);
+    printf("first block: %d, second block: %d\n", firstBlock, secondBlock); //TODO:
+#endif
+    unordered_map<unsigned int,unsigned int>::const_iterator foundedItem = idToIDx.find(item);
+    if (foundedItem == idToIDx.end()) // item has no overflows
+        minOverFlows = 0;
+    else {
+        itemIdx = idToIDx.at(item);
+        minOverFlows = partialIntervalQuery(itemIdx, firstBlock, secondBlock);
+#ifdef DEBUGGING
+        cout << "number of overflow: " << minOverFlows << endl;
+#endif
+    }
+    //return threshold * (minOverFlows + 1); EMP_ERROR TEST
+    return minOverFlows;
+}
+*/
+
+
+
 
 #ifdef DEBUGGING2
 double HIT::testIntervalQuery(unsigned int b2, unsigned int b1)

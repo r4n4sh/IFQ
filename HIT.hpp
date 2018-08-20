@@ -88,6 +88,7 @@ private:
     double epsilon;
     unsigned int threshold;
     int m; //maximal value of an element in the stream
+    int lastBlock;
 
     double computeOverflowCount(unsigned int item);
 
