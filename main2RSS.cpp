@@ -489,7 +489,12 @@ int main(int argc, char * argv[]) {
 
 			int i = rand() % hit->getLastBlock();
 			int j = i + interval_size;
-	        int b1 = hit->getLastBlock() - j;
+	        int b1 = (hit->getLastBlock() - j) < 0 ? 0 : hit->getLastBlock() - j;
+
+			if (b1 < 0)
+				b1 = 0;
+			else
+				b1 = hit->getLastBlock() - j;
 	        int b2 = b1 + interval_size;
 
 			for (int k = b1*block_sz; k<= b2*block_sz; ++k) {
