@@ -64,6 +64,10 @@ public:
     double query(unsigned int item);
     /* Query Interval Section */
     double intervalQuery(unsigned int item, int b1, int b2);
+    double intervalQueryTest(unsigned int item, int i, int j);
+    int getLastBlock() {
+        return lastBlock;
+    }
 
 #ifdef DEBUGGING
     double testIntervalQuery(unsigned int b2, unsigned int b1);
@@ -93,13 +97,18 @@ private:
     double computeOverflowCount(unsigned int item);
 
     /* Query Interval Section */
-    void populateCurrSkipListLevel(unsigned int blockNumber, unsigned int itemIdx);
+    void populateIncTable(unsigned int itemIdx);
+    unsigned int partialIntervalQuery(unsigned int itemIdx, unsigned int b2, unsigned int b1);
+
     void populateSkipListLevels(unsigned int blockNumber);
-    unsigned int partialIntervalQuery(unsigned int itemIdx, unsigned int secondBlock, unsigned int firstBlock);
+    int getIndexInskiplist(int blockNumber, int level);
+    void endBlock(int blockNumber);
 
     unsigned int skiplistSize;
     unordered_map<unsigned int, unsigned int> idToIDx;
     unordered_map<unsigned int, unsigned int> **skiplistMap;
+    unordered_map<unsigned int, unsigned int> *incTable;
+
     unsigned int *levelToidx;
 };
 

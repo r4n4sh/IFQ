@@ -350,21 +350,23 @@ int main(int argc, char * argv[]) {
 		ACC_K *acck = new ACC_K(window_size, gamma, M, epsilon, 4);
 #endif
 
-		unsigned long* window = new unsigned long[window_size];
+		int block_sz = ceil((window_size * epsilon)/6);
+		int test_window =  window_size*block_sz;
+		unsigned long* window = new unsigned long[test_window];
 
 		for (i = 0; i < n; i++) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			data[i] = (unsigned long)256*((unsigned long)256*((unsigned long)256*w + x) + y) + z;
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			fscanf(fp, "%d", weights+i);
-#if defined(TEST_QUERY) | defined(EMP_ERROR)
+#if defined(TEST_QUERY) | defined(EMP_ERROR) | defined(new_emp)
 			int interval_idx = i/range;
 			intervals[interval_idx] = 1 + (int)rand() % (int)(0.88 * window_size);
 			//printf("interval_idx: %d\n", intervals[interval_idx]);
 #endif
 
 #ifdef new_emp
-			window[i%window_size] = data[i];
+			window[i%test_window] = data[i];
 #endif
 
 #ifdef EMP_ERROR
@@ -404,7 +406,7 @@ int main(int argc, char * argv[]) {
 				//printf("[%d] count from window, first idex: %d, secoond idx: %d, window_size: %d\n", i, intervals[interval_idx], intervals[interval_idx] + interval_size, window_size);
 
 				for (int k=intervals[interval_idx]; k<intervals[interval_idx] + interval_size; ++k) {
-					if (window[k] == data[i]) {
+					if (window[k-1] == data[i]) {
 						exact += 1;
 					}
 				}
@@ -481,20 +483,30 @@ int main(int argc, char * argv[]) {
             hit->update(data[i] & masks[0], 1);
         }
 
-        interval_idx = 3;
-		for (int k=intervals[interval_idx]; k<intervals[interval_idx] + interval_size; ++k) {
-			if (window[k] == data[i-1]) {
-				exact += 1;
+
+        for (i = 0; i < n; i++)  {
+			double exact = 0;
+
+			int i = rand() % hit->getLastBlock();
+			int j = i + interval_size;
+	        int b1 = hit->getLastBlock() - j;
+	        int b2 = b1 + interval_size;
+
+			for (int k = b1*block_sz; k<= b2*block_sz; ++k) {
+				if (window[k-1] == data[i])
+					exact += 1;
 			}
-		}
+        
 
-		estimated = hit->intervalQuery(data[i-1], 0, 10);
+			estimated = hit->intervalQuery(data[i], i, j);
 
-		curr_error = exact - estimated;
-		printf("[%d] estimated: %f exact: %f curr_error: %f, interval: [%d, %d]\n", i, estimated, exact, curr_error, intervals[interval_idx],intervals[interval_idx] + interval_size);
-		curr_error = pow(curr_error, 2);
-		emp_error += curr_error;
-				
+			curr_error = exact - estimated;
+			printf("[%d] estimated: %f exact: %f curr_error: %f, interval: [%d, %d]\n", i, estimated, exact, curr_error, b1, b2);
+
+			curr_error = pow(curr_error, 2);
+			emp_error += curr_error;
+        }
+
 		emp_error = sqrt((emp_error/n));
 
 		printf( "[%d] ./hit empirical error: %f\n", i , emp_error);
