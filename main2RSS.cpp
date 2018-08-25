@@ -488,8 +488,11 @@ int main(int argc, char * argv[]) {
 			double exact = 0;
 
 			int i = rand() % hit->getLastBlock();
+			int interval_size = rand() % (hit->getLastBlock() - i);
 			int j = i + interval_size;
-	        int b1 = (hit->getLastBlock() - j) < 0 ? 0 : hit->getLastBlock() - j;
+			if (j > hit->getLastBlock())
+				j = hit->getLastBlock();
+	        int b1 = hit->getLastBlock() - j;
 	        int b2 = b1 + interval_size;
 
 			for (int k = b1*block_sz; k<= b2*block_sz; ++k) {
