@@ -498,7 +498,7 @@ int main(int argc, char * argv[]) {
 	        int b2 = b1 + interval_size;
 
 			for (int k = b1*block_sz; k<= b2*block_sz; ++k) {
-				if (window[k-1] == data[i])
+				if (window[k] == data[i])
 					exact += 1;
 			}
         
