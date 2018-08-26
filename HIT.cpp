@@ -284,8 +284,8 @@ double HIT::intervalQuery(unsigned int item, int i, int j)
 		itemIdx = idToIDx.at(item);
 		minOverFlows = partialIntervalQuery(itemIdx, last, first);
 	}
-	//return threshold * (minOverFlows + 1); EMP_ERROR TEST
-	return minOverFlows;
+	return threshold * (minOverFlows + 2);
+	//return block_size * (minOverFlows + 2);
 }
 
 double HIT::intervalQueryTest(unsigned int item, int i, int j)
@@ -299,6 +299,5 @@ double HIT::intervalQueryTest(unsigned int item, int i, int j)
         itemIdx = idToIDx.at(item);
         minOverFlows = partialIntervalQuery(itemIdx, i, j);
     }
-    //return threshold * (minOverFlows + 1); EMP_ERROR TEST
-    return minOverFlows;
+    return threshold * (minOverFlows + 2);
 }
