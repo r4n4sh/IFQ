@@ -13,10 +13,6 @@
 
 using namespace std;
 
-/*
-int testArr[8] = {1,2,2,0,0,0,0,0};
-unsigned int lastOverflowed;
-*/ // TODO: testing
 
 ACC::ACC(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
 {
@@ -34,6 +30,8 @@ ACC::ACC(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     indexSize = maxOverflows + blocksNumber;
     head = maxOverflows - 1;
     indexHead = blocksNumber - 1;
+    lastBlock = 1;
+
     index = new vector<int> (indexSize); // 0 means end of block
     overflowsElements = new unsigned int[maxOverflows];
     rss = new RSS_CPP(epsilon, m, gamma);//y
@@ -43,6 +41,9 @@ ACC::ACC(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     overflowedArr = new unordered_map<unsigned int, unsigned int>*[blocksNumber];
     for(int i =0 ; i < blocksNumber ; i++)
     	overflowedArr[i] =  new unordered_map<unsigned int, unsigned int> (maxOverflows);
+    incTable = new unordered_map<unsigned int, unsigned int>*[blocksNumber];
+    for(int i =0 ; i < blocksNumber ; i++)
+        incTable[i] =  new unordered_map<unsigned int, unsigned int> (maxOverflows);
 
 }
 
@@ -58,10 +59,53 @@ ACC::~ACC()
     delete(index);
 }
 
+void ACC::populateIncTable(unsigned int itemIdx)
+{
+
+    for(int l = 0; l < k; l++) {
+            unordered_map<unsigned int, unsigned int>* foundedTable = incTable[l];
+
+        if(foundedTable->find(itemIdx) == foundedTable->end())
+            foundedTable->insert(pair<int, int> (itemIdx, 1));
+        else
+            foundedTable->at(itemIdx) = foundedTable->at(itemIdx) + 1;
+    
+        incTable[l] = foundedTable;
+    }
+}
+
+
 double ACC::computeOverflowCount(unsigned int item)
 {
     double k = 6. / this->epsilon;
     return (rss->query(item) / (this->m * (this->windowSize / k)));
+}
+
+
+void ACC::endBlock(int blockNumber)
+{
+    indexTail = (indexTail + 1) % indexSize;
+    indexHead = (indexHead + 1) % indexSize;
+    index->at(indexHead) = 0;
+
+    int l = 0;
+    while ((l < k-1) && (lastBlock % (pow(d, l+1)) == 0)) {
+            incTable[l]->clear();
+            ghostTables[l]->clear();
+            ++l;
+    }
+
+    for (auto it = incTable->begin(); it != incTable->end(); ++it)
+        skiplistMap[blockNumber]->insert(pair<unsigned int, unsigned int>(it->first, it->second));
+
+    for (auto it = incTable->begin(); it != incTable->end(); ++it)
+        skiplistMap[blockNumber]->insert(pair<unsigned int, unsigned int>(it->first, it->second));
+
+
+    incTable->clear();
+
+    populateSkipListLevels(blockNumber);
+
 }
 
 void ACC::update(unsigned int item, int wieght)
@@ -117,11 +161,6 @@ void ACC::update(unsigned int item, int wieght)
 	// Add item to RSS_CPP
     this->rss->update(item, wieght);
 
-    /*
-    if (testArr[currBlock]) { //TODO for testing only
-    	--testArr[currBlock];
-    */
-    // overflow
     if ((this->rss->query(item) %threshold) == 0) {
         head = (head + 1) % maxOverflows;
         overflowsElements[head] = item;
@@ -136,44 +175,15 @@ void ACC::update(unsigned int item, int wieght)
         else
             totalOverflows->at(item) = totalOverflows->at(item) + 1;
 
-        /* printf("before overflowArr currBlock: %d blocksNumber:%d overflowsNumber: %d\n", currBlock, blocksNumber, overflowsNumber); */ // TODO: testing
-
    	    int itemIdx = idToIDx.at(item);
 
-/*
-        for (int i = currBlock; i <= blocksNumber; ++i) {
-            unordered_map<unsigned int, unsigned int>* blockMap = overflowedArr[i -1];
+        populateIncTable(unsigned int itemIdx);
+    }
 
-            if(blockMap->find(itemIdx) == blockMap->end())
-            	blockMap->insert(pair<int, int> (itemIdx, 1));
-            else
-            	blockMap->at(itemIdx) = blockMap->at(itemIdx) + 1;
-
-            overflowedArr[i - 1] = blockMap;
-#ifdef ACC1_DEBUGGING
-            cout << "overflowedArr["<< i -1 <<"] contains: ";
-            for ( auto it = overflowedArr[i - 1]->begin(); it != overflowedArr[i - 1]->end(); ++it )
-            	cout << " " << it->first << ":" << it->second;
-            cout << endl;
-#endif
-        }
-*/
-
-        unordered_map<unsigned int, unsigned int>* blockMap = overflowedArr[currBlock -1];
-
-        if(blockMap->find(itemIdx) == blockMap->end())
-        	blockMap->insert(pair<int, int> (itemIdx, 1));
-        else
-        	blockMap->at(itemIdx) = blockMap->at(itemIdx) + 1;
-
-        overflowedArr[currBlock - 1] = blockMap;
-
-        /*
-    	if (overflowsNumber == 2) {
-    		lastOverflowed = item;
-    		printf("item in update: %d overflowesNumber: %d\n", item, overflowsNumber);
-    		printf("idx: %d\n", idToIDx.at(item));
-    	} */ //TODO: testing
+    /* Last frame in the current block */
+    /* NEW BLOCK */
+    if ((frameItems % blockSize) == 0) {
+        endBlock(blockNumber);
     }
 
     // New frame
@@ -193,18 +203,17 @@ double ACC::query(unsigned int item)
         minOverFlows = 0;
     else {
         minOverFlows = totalOverflows->at(item);
-        //rssEstimation = (int) rssEstimation % (int) this->threshold;//TODO
     }
 
     rssEstimation = (int) rssEstimation % (int) this->threshold; //TODO
     return (this->threshold * (minOverFlows + 2 ) + rssEstimation);
-	// return intervalQuery(lastOverflowed, 2, 9); //TODO: testing
 }
 
 double ACC::intervalQuery(unsigned int item, int b1, int b2)
 {
-	int firstBlock = ((int) ceil((double) b1 / (double) blockSize) % (int) blocksNumber);
-	int secondBlock = ((int) floor((double) b2 / (double)blockSize) % (int) blocksNumber);
+    int first = ((int)(lastBlock - i) % (int) (blocksNumber+1));
+    int last = ((int)(lastBlock - j) % (int) (blocksNumber+1));
+
 	int minOverFlows;
 	int itemIdx;
 
@@ -215,18 +224,13 @@ double ACC::intervalQuery(unsigned int item, int b1, int b2)
 		int overTillFirst = 0;
 
 		itemIdx = idToIDx.at(item);
-		/*
-		printf("itemIDx: %d\n", itemIdx);
-		printf("overflowed in second: %d \n", *((int *)overflowedArr + maxOverflows * secondBlock + itemIdx));
-		printf("overflowed in first: %d \n", *((int *)overflowedArr + maxOverflows * firstBlock + itemIdx));
-		*/ //TODO: testing
 
-		if (overflowedArr[secondBlock]->find(itemIdx) != overflowedArr[secondBlock]->end()) {
-			overTillSecond = overflowedArr[secondBlock]->at(itemIdx);
+		if (overflowedArr[last]->find(itemIdx) != overflowedArr[last]->end()) {
+			overTillSecond = overflowedArr[last]->at(itemIdx);
 		}
 
-		if (overflowedArr[firstBlock]->find(itemIdx) != overflowedArr[firstBlock]->end()) {
-			overTillFirst = overflowedArr[firstBlock]->at(itemIdx);
+		if (overflowedArr[first]->find(itemIdx) != overflowedArr[first]->end()) {
+			overTillFirst = overflowedArr[first]->at(itemIdx);
 		}
 		minOverFlows = overTillSecond - overTillFirst;
 	}

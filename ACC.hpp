@@ -42,14 +42,21 @@ private:
     int maxOverflows;
     float epsilon;
     unsigned int threshold;
+    int lastBlock;
     int m; //maximal value of an element in the stream
     //double alpha = 0.2;
     float gamma;
     double computeOverflowCount(unsigned int item);
+    void populateIncTable(unsigned int itemIdx);
+    int getLastBlock() {
+        return lastBlock;
+    }
 
     /* Naive Algorithm */
     unordered_map<int, int> idToIDx;
     unordered_map<unsigned int, unsigned int> **overflowedArr;
+    unordered_map<unsigned int, unsigned int> **incTable;
+
 };
 
 

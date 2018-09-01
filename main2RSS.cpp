@@ -31,11 +31,12 @@ The main function for the two-dimensional HHH program
 #define TRY_2
 //#define EMP_ERROR
 #define new_emp
+#define new_emp_acck
 
-#define HIT_TESTING 1
+//#define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
 //#define ACC_TESTING 1
-//#define ACCK_TESTING 1
+#define ACCK_TESTING 1
 //#define ACC1_TESTING 1
 //#define RAW_TESTING 1
 
@@ -302,7 +303,7 @@ int main(int argc, char * argv[]) {
 
 		gamma = 0;
 		M = 1;
-
+		int k_algo = 4;
 		if(n / counters >= threshold) {
 			printf("Unacceptable parameters: eps*n >= theshold\n");
 			return 0;
@@ -347,7 +348,7 @@ int main(int argc, char * argv[]) {
 		ACC1 *acc1 = new ACC1(window_size, gamma, M, epsilon);
 #endif
 #ifdef ACCK_TESTING
-		ACC_K *acck = new ACC_K(window_size, gamma, M, epsilon, 4);
+		ACC_K *acck = new ACC_K(window_size, gamma, M, epsilon, k_algo);
 #endif
 
 		int block_sz = ceil((window_size * epsilon)/6);
@@ -474,7 +475,8 @@ int main(int argc, char * argv[]) {
 
 
 
-#ifdef new_emp
+#if defined(new_emp) && defined (new_emp_hit)
+
 		double estimated, curr_error = 0;
 		double exact = 0;
 		int interval_idx = 0;
@@ -504,7 +506,7 @@ int main(int argc, char * argv[]) {
 			estimated = hit->intervalQuery(data[i], i, j);
 
 			curr_error = exact - estimated;
-			printf("[%d] estimated: %f exact: %f curr_error: %f, interval: [%d, %d]\n", i, estimated, exact, curr_error, b1, b2);
+		//	printf("[%d] estimated: %f exact: %f curr_error: %f, interval: [%d, %d]\n", i, estimated, exact, curr_error, b1, b2);
 
 			curr_error = pow(curr_error, 2);
 			emp_error += curr_error;
@@ -515,6 +517,49 @@ int main(int argc, char * argv[]) {
 		printf( "[%d] ./hit empirical error: %f\n", i , emp_error);
 
 #endif
+
+#if defined(new_emp) && defined (new_emp_acck)
+		double estimated, curr_error = 0;
+		double exact = 0;
+		int interval_idx = 0;
+
+        for (i = 0; i < n; i++)  {
+            acck->update(data[i] & masks[0], 1);
+        }
+
+
+        for (i = 0; i < n; i++)  {
+			double exact = 0;
+
+			int i = rand() % acck->getLastBlock();
+			int interval_size = rand() % (acck->getLastBlock() - i);
+			int j = i + interval_size;
+			if (j > acck->getLastBlock())
+				j = acck->getLastBlock();
+	        int b1 = acck->getLastBlock() - j;
+	        int b2 = b1 + interval_size;
+
+			for (int k = b1*block_sz + 1; k<= b2*block_sz; ++k) {
+				if (window[k] == data[i])
+					exact += 1;
+			}
+        
+
+			estimated = acck->intervalQuery(data[i], i, j);
+
+			curr_error = exact - estimated;
+			//printf("[%d] estimated: %f exact: %f curr_error: %f, interval: [%d, %d]\n", i, estimated, exact, curr_error, b1, b2);
+
+			curr_error = pow(curr_error, 2);
+			emp_error += curr_error;
+        }
+
+		emp_error = sqrt((emp_error/n));
+
+		printf( "[%d] ./acc%d empirical error: %f\n", i ,k_algo, emp_error);
+
+#endif
+
 
 
 

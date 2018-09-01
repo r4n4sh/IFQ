@@ -29,6 +29,10 @@ public:
 #ifdef ACC_K_DEBUGGING
     void printHashMaps();
 #endif
+    int getLastBlock() {
+        return lastBlock;
+    }
+
 private:
     unsigned int k;
     unsigned int step;
@@ -50,14 +54,21 @@ private:
     int maxOverflows;
     float epsilon;
     unsigned int threshold;
+    int lastBlock;
+
     int m; //maximal value of an element in the stream
     //double alpha = 0.2;
     float gamma;
     double computeOverflowCount(unsigned int item);
     unsigned int withinFrameFrequency(unsigned int required_block, int itemIdx);
+    void populateIncTable(unsigned int itemIdx);
+    void endBlock(int blockNumber);
+    double winQuery(unsigned int item, int w);
+
     /* ACC_K Algorithm */
     unordered_map<unsigned int, unsigned int> idToIDx;
     unordered_map<unsigned int, unsigned int> ***overflowedArrLevels;
+    unordered_map<unsigned int, unsigned int> **incTable;
     unordered_map<unsigned int, unsigned int> **ghost_tables;
 
 };

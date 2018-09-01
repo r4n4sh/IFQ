@@ -143,7 +143,7 @@ int HIT::getIndexInskiplist(int blockNumber, int level)
 void HIT::endBlock(int blockNumber)
 {
 
-    lastBlock = 1 + (lastBlock % (int) blockNumber);
+    lastBlock = 1 + (lastBlock % (int) blocksNumber);
 
     indexTail = (indexTail + 1) % indexSize;
     indexHead = (indexHead + 1) % indexSize;
