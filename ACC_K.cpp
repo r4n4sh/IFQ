@@ -251,7 +251,7 @@ double ACC_K::winQuery(unsigned int itemIdx, int w) {
       }
     }
 
-    return abs(double(cFreq - tmp_res));
+    return abs(cFreq - tmp_res);
   }
   else {
     int b = blocksNumber + lastBlock + 1 - w;
@@ -297,7 +297,7 @@ double ACC_K::intervalQuery(unsigned int item, int i, int j)
     if (i == 0)
       sum = winQuery(itemIdx, j);
     else
-      sum = abs(double(winQuery(itemIdx, j) - winQuery(itemIdx, i)));
+      sum = abs((int)(winQuery(itemIdx, j) - winQuery(itemIdx, i)));
 	}
 
 	return threshold * (sum + 2);
