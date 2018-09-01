@@ -221,7 +221,7 @@ double ACC_K::winQuery(unsigned int itemIdx, int w) {
     cFreq = incTable[0]->at(itemIdx);
   }
 
-  int lastLevel = (int) (log(lastBlock) / log(step));
+  int lastLevel = min((int) (log(lastBlock) / log(step)), (int) (k - 1));
   int cblock;
 
   for (int l = 1; l <= lastLevel; ++l) {
@@ -239,7 +239,7 @@ double ACC_K::winQuery(unsigned int itemIdx, int w) {
     int tmp_res = 0;
 
     //lastLevel = (int)(log(lastBlock + 1 - w) / log(step));
-    lastLevel = (int)(log(lastBlock - w) / log(step));
+    lastLevel = min(((int)(log(lastBlock - w) / log(step))), (int)(k - 1));
 
     for (int l = 0; l <= lastLevel; ++l) {
       //cblock = pow(step, l) * floor((lastBlock + 1 -w) / (pow(step, l)));
