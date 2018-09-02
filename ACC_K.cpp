@@ -167,7 +167,7 @@ void ACC_K::update(unsigned int item, int wieght)
         }
    	    int itemIdx = idToIDx.at(item);
         ++overflowsNumber;
-        assert(overflowsNumber <= maxOverflows);
+        //assert(overflowsNumber <= maxOverflows);
         indexHead = (indexHead + 1) % indexSize;
         index->at(indexHead) = 1;
         unordered_map<int,int>::const_iterator foundedItem = totalOverflows->find(item);
