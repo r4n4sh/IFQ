@@ -32,6 +32,7 @@ public:
     int getLastBlock() {
         return lastBlock;
     }
+    double intervalFrequencyQuery(unsigned int item, int i, int j);
 
 private:
     unsigned int k;
@@ -53,7 +54,6 @@ private:
     int indexSize;
     int maxOverflows;
     float epsilon;
-    unsigned int threshold;
     int lastBlock;
 
     int m; //maximal value of an element in the stream

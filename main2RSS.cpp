@@ -38,7 +38,6 @@ double dblmainmax(double a, double b) {return (a >= b ? a : b);}
 
 int main(int argc, char * argv[]) {
 		int counters = 100;
-		int threshold = 1000;
 		int n = 100000;
 		int k =1;
 		double time;
@@ -55,6 +54,7 @@ int main(int argc, char * argv[]) {
 		float gamma = 4;
 		double epsilon = 0.01;
 		unsigned int interval_size;
+		unsigned int interval_size_pkt;
 		int percentage = 1;
 		int window_size = 1600;
 		int interval_1;
@@ -177,16 +177,10 @@ int main(int argc, char * argv[]) {
 		gamma = 0;
 		M = 1;
 		int k_algo = 4;
-		if(n / counters >= threshold) {
-			printf("Unacceptable parameters: eps*n >= theshold\n");
-			return 0;
-		}
 
 #ifdef EMP_ERROR
 	//	window_size = 1 << 20;
 #endif
-		int size_precentage = 100/percentage; // 1000/x: x% - 1%
-		interval_size = ceil(window_size / size_precentage); // 10% of window_size
 
 #ifdef TEST_QUERY_INTERVALS
 		window_size = 1 << 20; // default window = 2^20
@@ -200,6 +194,14 @@ int main(int argc, char * argv[]) {
 		int interval_arr_size = ceil(n/range);
 		intervals = (unsigned *) malloc(sizeof(unsigned) * interval_arr_size);
 #endif
+		int block_sz = ceil((window_size * epsilon)/6);
+		int test_window =  window_size;
+		unsigned long* window = new unsigned long[test_window];
+
+		float size_precentage = percentage/100.0; // percenatge%
+		interval_size_pkt = ceil(size_precentage * window_size); // 10% of window_size
+		interval_size = interval_size_pkt /block_sz;
+
 
 #ifdef new_emp
 		int range = 10;
@@ -222,9 +224,6 @@ int main(int argc, char * argv[]) {
 		ACC_K *acck = new ACC_K(window_size, gamma, M, epsilon, k_algo);
 #endif
 
-		int block_sz = ceil((window_size * epsilon)/6);
-		int test_window =  window_size*block_sz;
-		unsigned long* window = new unsigned long[test_window];
 
 		for (i = 0; i < n; i++) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
@@ -334,7 +333,7 @@ int main(int argc, char * argv[]) {
 
         for (i = 0; i < n; i++)  {
 			double exact = 0;
-
+/*
 			int i = rand() % hit->getLastBlock();
 			int interval_size = rand() % (hit->getLastBlock() - i);
 			int j = i + interval_size;
@@ -350,6 +349,24 @@ int main(int argc, char * argv[]) {
         
 
 			estimated = hit->intervalQuery(data[i], i, j);
+
+			int i =  rand() % (n - interval_size_pkt);
+			int j = i + interval_size_pkt;
+
+			for (int k = i; k<= j; ++k) {
+				if (window[k] == data[i])
+					exact += 1;
+			}
+*/
+			int first =  rand() % (n - interval_size_pkt);
+			int last = first + interval_size_pkt;
+
+			for (int k = first; k<= last; ++k) {
+				if (window[k] == data[i])
+					exact += 1;
+			}
+
+			estimated = hit->intervalFrequencyQuery(data[i],  first,  last);
 
 			curr_error = exact - estimated;
 			curr_error = pow(curr_error, 2);
@@ -375,7 +392,7 @@ int main(int argc, char * argv[]) {
         for (i = 0; i < n; i++)  {
 			double exact = 0;
 
-			int i = rand() % acck->getLastBlock();
+/*			int i = rand() % acck->getLastBlock();
 			int interval_size = rand() % (acck->getLastBlock() - i);
 			int j = i + interval_size;
 			if (j > acck->getLastBlock())
@@ -390,6 +407,16 @@ int main(int argc, char * argv[]) {
         
 
 			estimated = acck->intervalQuery(data[i], i, j);
+*/
+			int first =  rand() % (n - interval_size_pkt);
+			int last = first + interval_size_pkt;
+
+			for (int k = first; k<= last; ++k) {
+				if (window[k] == data[i])
+					exact += 1;
+			}
+
+			estimated = acck->intervalFrequencyQuery(data[i],  first,  last);
 
 			curr_error = exact - estimated;
 			curr_error = pow(curr_error, 2);
@@ -587,16 +614,33 @@ int main(int argc, char * argv[]) {
 #ifdef HIT_TESTING
         for (i = 0; i < n; i++)  {
             hit->update(data[i], 1);
-
-            interval_idx = i/range;
-			intervals[interval_idx] = 1 + rand() % (hit->getLastBlock() - interval_size);
         }
+
+/*
+    	assert(hit->getLastBlock() > interval_size);
+
+        for (i = 0; i < (n/range); i++)  {
+			intervals[i] = 1 + rand() % (hit->getLastBlock() - interval_size);
+        }
+
 
 		begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
             hit->intervalQuery(data[i], intervals[i/range], intervals[i/range] + interval_size);
         }
+*/
+
+        for (i = 0; i < (n/range); i++)  {
+			intervals[i] = 1 + rand() % (n - interval_size_pkt);
+        }
+        
+        begint = clock();
+		ftime(&begintb);
+        for (i = 0; i < n; i++)  {
+            hit->intervalFrequencyQuery(data[i], intervals[i/range], intervals[i/range] + interval_size);
+        }
+
 
 		endt = clock();
 		ftime(&endtb);
@@ -652,9 +696,16 @@ int main(int argc, char * argv[]) {
 #ifdef ACCK_TESTING
         for (i = 0; i < n; i++)  {
             acck->update(data[i], 1);
-            interval_idx = i/range;
-			intervals[interval_idx] = 1 + rand() % (acck->getLastBlock() - interval_size);
+        }
 
+        for (i = 0; i < (n/range); i++)  {
+			intervals[i] = 1 + rand() % (n - interval_size_pkt);
+        }
+        
+        begint = clock();
+		ftime(&begintb);
+        for (i = 0; i < n; i++)  {
+            acck->intervalFrequencyQuery(data[i], intervals[i/range], intervals[i/range] + interval_size);
         }
 
 		begint = clock();

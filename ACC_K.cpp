@@ -43,7 +43,6 @@ ACC_K::ACC_K(unsigned int windowSize, float gamma, unsigned int m, float epsilon
     index = new vector<int> (indexSize); // 0 means end of block
     overflowsElements = new unsigned int[maxOverflows];
     rss = new RSS_CPP(epsilon, m, gamma);//y
-    threshold = ceil(windowSize*m*epsilon / 6.0); // W*M/k
     totalOverflows = new unordered_map<int, int> (maxOverflows);//B TODO: allocate static?
     overflowedArrLevels = new unordered_map<unsigned int, unsigned int>**[k];
     ghost_tables = new unordered_map<unsigned int, unsigned int>*[k];
@@ -158,7 +157,7 @@ void ACC_K::update(unsigned int item, int wieght)
     this->rss->update(item, wieght);
 
     // overflow
-   if ((this->rss->query(item) %threshold) == 0) {
+   if ((this->rss->query(item) %blockSize) == 0) {
     	head = (head + 1) % maxOverflows;
         overflowsElements[head] = item;
         if (idToIDx.find(item) == idToIDx.end()) {
@@ -202,11 +201,11 @@ double ACC_K::query(unsigned int item)
         minOverFlows = 0;
     else {
         minOverFlows = totalOverflows->at(item);
-        //rssEstimation = (int) rssEstimation % (int) this->threshold;//TODO
+        //rssEstimation = (int) rssEstimation % (int) this->blockSize;//TODO
     }
 
-    rssEstimation = (int) rssEstimation % (int) this->threshold; //TODO
-    return (this->threshold * (minOverFlows + 2 ) + rssEstimation);
+    rssEstimation = (int) rssEstimation % (int) this->blockSize; //TODO
+    return (this->blockSize * (minOverFlows + 2 ) + rssEstimation);
 	// return intervalQuery(lastOverflowed, 2, 9); //TODO: testing
 }
 
@@ -300,9 +299,14 @@ double ACC_K::intervalQuery(unsigned int item, int i, int j)
       sum = abs((int)(winQuery(itemIdx, j) - winQuery(itemIdx, i)));
 	}
 
-	return threshold * (sum + 2);
-  //return threshold * (sum );
+	return blockSize * (sum + 2);
+  //return blockSize * (sum );
 
+}
+
+double ACC_K::intervalFrequencyQuery(unsigned int item, int i, int j)
+{
+    return blockSize *(intervalQuery(item, ceil((double)i/(double)blockSize), floor((double)j/(double)blockSize)) + 2);
 }
 
 #ifdef ACC_K_DEBUGGING

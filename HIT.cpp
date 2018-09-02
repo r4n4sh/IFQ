@@ -87,7 +87,7 @@ HIT::HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     tail = 0;
     idx = 0;
     indexTail = 0;
-    this->blockSize = ceil((windowSize * epsilon)/6); // W/k; k= 6/epsilon
+    this->blockSize = ceil((windowSize * epsilon)/6.f); // W/k; k= 6/epsilon
     this->windowSize = windowSize;
     this->blocksNumber = windowSize / blockSize;
     this->m = m;
@@ -101,7 +101,6 @@ HIT::HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
     index = new vector<int> (indexSize); // 0 means end of block
     overflowsElements = new unsigned int[maxOverflows];
     rss = new RSS_CPP(epsilon/6., m, gamma);//y
-    threshold = ceil(windowSize*m*epsilon / 6.f); // W*M/k
     totalOverflows = new unordered_map<unsigned int, unsigned int> (maxOverflows);//B TODO: allocate static?
 
     /* Query Interval Section */
@@ -187,7 +186,7 @@ void HIT::update(unsigned int item, int wieght)
 
     // overflow
     //	printf("IS OVERFLOW? : %d\n", this->rss->query(item));
-    if ((this->rss->query(item)%threshold) == 0) {
+    if ((this->rss->query(item)%blockSize) == 0) {
         head = (head + 1) % maxOverflows;
         overflowsElements[head] = item;
         if (idToIDx.find(item) == idToIDx.end()) {
@@ -227,11 +226,11 @@ double HIT::query(unsigned int item)
         minOverFlows = 0;
     else {
         minOverFlows = totalOverflows->at(item);
-        //rssEstimation = (int) rssEstimation % (int) this->threshold;//TODO
+        //rssEstimation = (int) rssEstimation % (int) this->blockSize;//TODO
     }
 
-    rssEstimation = (int) rssEstimation % (int) this->threshold; //TODO
-    return (this->threshold * (minOverFlows + 2 ) + rssEstimation);
+    rssEstimation = (int) rssEstimation % (int) this->blockSize; //TODO
+    return (this->blockSize * (minOverFlows + 2 ) + rssEstimation);
 }
 
 unsigned int HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, unsigned int b1)
@@ -270,8 +269,6 @@ unsigned int HIT::partialIntervalQuery(unsigned int itemIdx, unsigned int b2, un
 
 double HIT::intervalQuery(unsigned int item, int i, int j)
 {
-	//int firstBlock = ((int) ceil((double) b2 / (double) blockSize) % (int) blocksNumber) + 1;
-	//int secondBlock = ((int) ceil((double) b1 / (double)blockSize) % (int) blocksNumber);
     int first = ((int)(lastBlock - i) % (int) (blocksNumber+1));
     int last = ((int)(lastBlock - j) % (int) (blocksNumber+1));
 
@@ -284,8 +281,13 @@ double HIT::intervalQuery(unsigned int item, int i, int j)
 		itemIdx = idToIDx.at(item);
 		minOverFlows = partialIntervalQuery(itemIdx, last, first);
 	}
-	return threshold * (minOverFlows + 2);
+	return minOverFlows;
 	//return block_size * (minOverFlows + 2);
+}
+
+double HIT::intervalFrequencyQuery(unsigned int item, int i, int j)
+{
+    return blockSize *(intervalQuery(item, ceil((double)i/(double)blockSize), floor((double)j/(double)blockSize)) + 2);
 }
 
 double HIT::intervalQueryTest(unsigned int item, int i, int j)
@@ -299,5 +301,5 @@ double HIT::intervalQueryTest(unsigned int item, int i, int j)
         itemIdx = idToIDx.at(item);
         minOverFlows = partialIntervalQuery(itemIdx, i, j);
     }
-    return threshold * (minOverFlows + 2);
+    return blockSize * (minOverFlows + 2);
 }
