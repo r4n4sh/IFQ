@@ -514,7 +514,7 @@ int main(int argc, char * argv[]) {
 
 		emp_error = sqrt((emp_error/n));
 
-		printf( "[%d] ./hit empirical error: %f\n", i , emp_error);
+		printf( "./hit empirical error: %f%dB [%d counters %d window_size]\n", emp_error, counters, window_size);
 
 #endif
 
@@ -556,7 +556,7 @@ int main(int argc, char * argv[]) {
 
 		emp_error = sqrt((emp_error/n));
 
-		printf( "[%d] ./acc%d empirical error: %f\n", i ,k_algo, emp_error);
+		printf( "./acc%d empirical error: %f%dB [%d counters %d window_size]\n",k_algo, emp_error, counters, window_size);
 
 #endif
 
