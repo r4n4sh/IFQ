@@ -469,7 +469,7 @@ int main(int argc, char * argv[]) {
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
 
-		printf( "./acck %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+		printf( "./acc%d %d pairs took %lfs %dB [%d counters %d window_size]\n", k_algo, n, time, memory, counters, window_size);
 #endif
 
 #ifdef BASE_WRSS_ALGO
@@ -603,7 +603,7 @@ int main(int argc, char * argv[]) {
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
 
-		printf( "./acck %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+		printf( "./acc%d %d pairs took %lfs %dB [%d counters %d window_size]\n", k_algo, n, time, memory, counters, window_size);
 #endif
 
 #endif
