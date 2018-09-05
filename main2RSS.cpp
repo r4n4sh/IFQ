@@ -28,6 +28,7 @@
 #define new_emp
 #define new_emp_acck
 #define TEST_QUERY_INTERVALS
+#define TEST_ERROR_MEMORY
 
 //#define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
@@ -722,6 +723,75 @@ int main(int argc, char * argv[]) {
 #endif
 
 #endif
+
+
+
+
+/*====================== TEST ERROR MEMORY ===============================*/
+#ifdef TEST_ERROR_MEMORY
+
+#ifdef HIT_TESTING
+        for (i = 0; i < n; i++)  {
+            hit->update(data[i], 1);
+        }
+
+
+        for (i = 0; i < n; i++)  {
+			double exact = 0;
+			int first =  rand() % (n - interval_size_pkt);
+			int last = first + interval_size_pkt;
+
+			for (int k = first; k<= last; ++k) {
+				if (window[k] == data[i])
+					exact += 1;
+			}
+
+			estimated = hit->intervalFrequencyQuery(data[i],  first,  last);
+
+			curr_error = exact - estimated;
+			curr_error = pow(curr_error, 2);
+			emp_error += curr_error;
+        }
+
+		emp_error = sqrt((emp_error/n));
+
+		printf( "./hhh2RSS %d pairs emp error: %lf [%d counters %d window_size]\n", n, emp_error, counters, window_size);
+#endif
+
+#ifdef ACCK_TESTING
+        for (i = 0; i < n; i++)  {
+            acck->update(data[i], 1);
+        }
+
+
+        for (i = 0; i < n; i++)  {
+			double exact = 0;
+			int first =  rand() % (n - interval_size_pkt);
+			int last = first + interval_size_pkt;
+
+			for (int k = first; k<= last; ++k) {
+				if (window[k] == data[i])
+					exact += 1;
+			}
+
+			estimated = acck->intervalFrequencyQuery(data[i],  first,  last);
+
+			curr_error = exact - estimated;
+			curr_error = pow(curr_error, 2);
+			emp_error += curr_error;
+        }
+
+		emp_error = sqrt((emp_error/n));
+
+		printf( "./acc%d %d pairs emp error: %lf [%d counters %d window_size]\n", k_algo, n, emp_error, counters, window_size);
+#endif
+#endif
+
+
+
+
+
+
 
 #if defined(TEST_QUERY) | defined (EMP_ERROR)
 		free(intervals);
