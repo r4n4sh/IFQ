@@ -25,14 +25,15 @@
 //#define TEST_UPDATE 1
 //#define TEST_QUERY 1
 //#define EMP_ERROR
-#define new_emp
+//#define new_emp
 #define new_emp_acck
-#define TEST_QUERY_INTERVALS
-#define TEST_ERROR_MEMORY
+#define new_emp_hit
+//#define TEST_QUERY_INTERVALS
+//#define TEST_ERROR_MEMORY
 
-//#define HIT_TESTING 1
+#define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
-#define ACCK_TESTING 1
+//#define ACCK_TESTING 1
 //#define RAW_TESTING 1
 
 double dblmainmax(double a, double b) {return (a >= b ? a : b);}
@@ -334,7 +335,7 @@ int main(int argc, char * argv[]) {
 
         for (i = 0; i < n; i++)  {
 			double exact = 0;
-/*
+
 			int i = rand() % hit->getLastBlock();
 			int interval_size = rand() % (hit->getLastBlock() - i);
 			int j = i + interval_size;
@@ -351,14 +352,8 @@ int main(int argc, char * argv[]) {
 
 			estimated = hit->intervalQuery(data[i], i, j);
 
-			int i =  rand() % (n - interval_size_pkt);
-			int j = i + interval_size_pkt;
 
-			for (int k = i; k<= j; ++k) {
-				if (window[k] == data[i])
-					exact += 1;
-			}
-*/
+			/*
 			int first =  rand() % (n - interval_size_pkt);
 			int last = first + interval_size_pkt;
 
@@ -368,7 +363,7 @@ int main(int argc, char * argv[]) {
 			}
 
 			estimated = hit->intervalFrequencyQuery(data[i],  first,  last);
-
+*/
 			curr_error = exact - estimated;
 			curr_error = pow(curr_error, 2);
 			emp_error += curr_error;
