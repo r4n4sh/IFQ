@@ -79,8 +79,8 @@ for dataset in datasets:
         ##    target_file = None
 
         RUNS = 10
-        FIRST_PHINDEX = 11
-        LAST_PHINDEX = 15
+        FIRST_PHINDEX = 3
+        LAST_PHINDEX = `4
         #LAST_PHINDEX = 14 #for RAW
         gamma = 1
         #n = 10000000
