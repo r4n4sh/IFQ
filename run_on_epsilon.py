@@ -83,7 +83,9 @@ for dataset in datasets:
         LAST_PHINDEX = 15
         #LAST_PHINDEX = 14 #for RAW
         gamma = 1
-        n = 10000000
+        #n = 10000000
+        n = 64000000
+
         #n = 10000
         threshold = 1
         window_size = 1048576
@@ -100,12 +102,8 @@ for dataset in datasets:
                 for run in xrange(RUNS):
                         command = [fn,"-c", str(epsilon)]
                         print command
-                        interval_1 = int (random.randint(1, math.ceil(0.99*window_size)))
-                        interval_2 = int (interval_1 + math.ceil(window_size / 100));
                         if target_file:
-                                command += ["-np", str(n), "-t", str(threshold), "-f", target_file, "-M", str(M), "-gamma", str(gamma), "-w", str(window_size), "-i", str(interval_1), "-j", str(interval_2)]
-                        print " ".join(command)
-                        out = subprocess.check_output(command)
+                                command += ["-np", str(n), "-t", str(threshold), "-f", target_file, "-M", str(M), "-gamma", str(gamma), "-w", str(window_size)]
                         if (range == 0):
                                 timing = re.search("\s(\d+\.\d+)s\s", out).groups()[0]
                                 timing_list.append(timing)

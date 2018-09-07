@@ -523,15 +523,17 @@ int main(int argc, char * argv[]) {
 #ifdef HIT_TESTING
         for (i = 0; i < n; i++)  {
             hit->update(data[i], 1);
-
-            interval_idx = i/range;
-			intervals[interval_idx] = 1 + rand() % hit->getLastBlock();
         }
+
+        for (i = 0; i < (n/range); i++)  {
+			intervals[i] = 1 + rand() % (n - interval_size_pkt);
+        }
+
 
 		begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            hit->intervalQuery(data[i], intervals[i/range], intervals[i/range] + interval_size);
+            hit->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size);
         }
 
 		endt = clock();
@@ -586,20 +588,25 @@ int main(int argc, char * argv[]) {
 #endif
 
 #ifdef ACCK_TESTING
+
         for (i = 0; i < n; i++)  {
             acck->update(data[i], 1);
-            interval_idx = i/range;
-			intervals[interval_idx] = 1 + rand() % acck->getLastBlock();
-
         }
+
+        for (i = 0; i < (n/range); i++)  {
+			intervals[i] = 1 + rand() % (n - interval_size_pkt);
+        }
+
 
 		begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            acck->intervalQuery(data[i], intervals[i/range], intervals[i/range] + interval_size);
+            acck->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size);
         }
 
 		endt = clock();
+		ftime(&endtb);
+
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
 
@@ -639,7 +646,7 @@ int main(int argc, char * argv[]) {
         begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            hit->intervalFrequencyQuery(data[i], intervals[i/range], intervals[i/range] + interval_size);
+            hit->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size);
         }
 
 
@@ -678,11 +685,15 @@ int main(int argc, char * argv[]) {
         	raw->update(data[i], 1);
         }
 
+        for (i = 0; i < (n/range); i++)  {
+			intervals[i] = 1 + rand() % (n - interval_size_pkt);
+        }
+
 		begint = clock();
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
-            raw->intervalQuery(data[i], intervals[i/range], intervals[i/range] + interval_size);
+            raw->intervalQuery(data[i], intervals[i], intervals[i] + interval_size);
         }
 
 		endt = clock();
@@ -706,13 +717,7 @@ int main(int argc, char * argv[]) {
         begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            acck->intervalFrequencyQuery(data[i], intervals[i/range], intervals[i/range] + interval_size);
-        }
-
-		begint = clock();
-		ftime(&begintb);
-        for (i = 0; i < n; i++)  {
-            acck->intervalQuery(data[i], intervals[i/range], intervals[i/range] + interval_size);
+            acck->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size);
         }
 
 		endt = clock();

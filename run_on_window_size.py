@@ -17,18 +17,6 @@ def median(lst):
     else:
             return float(sum(lst[(len(lst)/2)-1:(len(lst)/2)+1]))/2.0
 
-# dataset = raw_input(
-    # '''
-    # Please pick dataset from the following options:
-    # UCLA-UDP
-    # UCLA-TCP
-    # YouTube
-    # Zipf1
-    # CAIDA
-    # SanJose
-    # '''
-    # )
-
 #datasets = ['Zipf1',  'YouTube', 'CAIDA', 'Chicago16', 'SanJose14', 'Chicago15', 'SanJose13']
 #datasets = [ 'SanJose13','Chicago16', 'SanJose14', 'Chicago15',  'CAIDA']
 #datasets = ['Zipf1.3','Zipf0.7','Zipf1']
@@ -79,7 +67,9 @@ for dataset in datasets:
 	#LAST_PHINDEX = 12 #for ACC
 	#LAST_PHINDEX = 9 #for RAW
 	gamma = 4
-    	n = 10000000
+    	#n = 10000000
+        n = 64000000
+
     	threshold = 1
     	counters = 256
 	windowsrange = range(FIRST_WINDINDEX,LAST_WINDINDEX)
