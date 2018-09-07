@@ -101,9 +101,12 @@ for dataset in datasets:
                 timing_list = []
                 for run in xrange(RUNS):
                         command = [fn,"-c", str(epsilon)]
-                        print command
                         if target_file:
                                 command += ["-np", str(n), "-t", str(threshold), "-f", target_file, "-M", str(M), "-gamma", str(gamma), "-w", str(window_size)]
+                        print " ".join(command)
+
+                        out = subprocess.check_output(command)
+
                         if (range == 0):
                                 timing = re.search("\s(\d+\.\d+)s\s", out).groups()[0]
                                 timing_list.append(timing)
