@@ -73,7 +73,7 @@ for dataset in datasets:
         n = 10000000
         #n = 10000
         threshold = 660000
-        window_size = 8192
+        window_size = 1048576
         epsilonsrange = range(FIRST_PHINDEX,LAST_PHINDEX)
         epsilons = [2**x for x in epsilonsrange] #actually its counters parameters (counters = 1/epsilon)
         fn = "./hhh2RSS"
