@@ -128,7 +128,7 @@ void ACC_K::endBlock(int blockNumber)
       ghost_tables[k-1]->clear();
     }
 
-    lastBlock = 1 + (lastBlock % (int) blocksNumber);
+    lastBlock = 1 + (lastBlock % (int) (blocksNumber + 1));
 }
 
 void ACC_K::update(unsigned int item, int wieght)
@@ -299,8 +299,8 @@ double ACC_K::intervalQuery(unsigned int item, int i, int j)
       sum = abs((int)(winQuery(itemIdx, j) - winQuery(itemIdx, i)));
 	}
 
-	return blockSize * (sum + 2);
-  //return blockSize * (sum );
+	//return blockSize * (sum + 2);
+  return blockSize * (sum );
 
 }
 

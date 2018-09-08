@@ -142,7 +142,7 @@ int HIT::getIndexInskiplist(int blockNumber, int level)
 void HIT::endBlock(int blockNumber)
 {
 
-    lastBlock = 1 + (lastBlock % (int) blocksNumber);
+    lastBlock = 1 + (lastBlock % (int) (blocksNumber + 1));
 
     indexTail = (indexTail + 1) % indexSize;
     indexHead = (indexHead + 1) % indexSize;
@@ -287,7 +287,7 @@ double HIT::intervalQuery(unsigned int item, int i, int j)
 
 double HIT::intervalFrequencyQuery(unsigned int item, int i, int j)
 {
-    return blockSize *(intervalQuery(item, ceil((double)i/(double)blockSize), floor((double)j/(double)blockSize)) + 2);
+    return blockSize *(intervalQuery(item, ceil(i/blockSize), floor(j/blockSize)) + 2);
 }
 
 double HIT::intervalQueryTest(unsigned int item, int i, int j)

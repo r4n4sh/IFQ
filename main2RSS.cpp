@@ -26,10 +26,10 @@
 //#define TEST_QUERY 1
 //#define EMP_ERROR
 //#define new_emp
-#define new_emp_acck
-#define new_emp_hit
+//#define new_emp_acck
+//#define new_emp_hit
 //#define TEST_QUERY_INTERVALS
-//#define TEST_ERROR_MEMORY
+#define TEST_ERROR_MEMORY
 
 #define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
@@ -237,7 +237,7 @@ int main(int argc, char * argv[]) {
 			intervals[interval_idx] = 1 + (int)rand() % (int)(0.88 * window_size);
 #endif
 
-#ifdef new_emp
+#if defined (new_emp) | defined(TEST_ERROR_MEMORY) 
 			window[i%test_window] = data[i];
 #endif
 
@@ -349,6 +349,9 @@ int main(int argc, char * argv[]) {
 					exact += 1;
 			}
         
+        	 if (b1 == b2)
+        	 	exact = block_sz;
+
 
 			estimated = hit->intervalQuery(data[i], i, j);
 
@@ -364,6 +367,7 @@ int main(int argc, char * argv[]) {
 
 			estimated = hit->intervalFrequencyQuery(data[i],  first,  last);
 */
+			cout << "estimated: " << estimated << " exact: " << exact << endl;
 			curr_error = exact - estimated;
 			curr_error = pow(curr_error, 2);
 			emp_error += curr_error;
@@ -388,7 +392,7 @@ int main(int argc, char * argv[]) {
         for (i = 0; i < n; i++)  {
 			double exact = 0;
 
-/*			int i = rand() % acck->getLastBlock();
+			int i = rand() % acck->getLastBlock();
 			int interval_size = rand() % (acck->getLastBlock() - i);
 			int j = i + interval_size;
 			if (j > acck->getLastBlock())
@@ -403,7 +407,8 @@ int main(int argc, char * argv[]) {
         
 
 			estimated = acck->intervalQuery(data[i], i, j);
-*/
+
+			/*
 			int first =  rand() % (n - interval_size_pkt);
 			int last = first + interval_size_pkt;
 
@@ -413,7 +418,7 @@ int main(int argc, char * argv[]) {
 			}
 
 			estimated = acck->intervalFrequencyQuery(data[i],  first,  last);
-
+*/
 			curr_error = exact - estimated;
 			curr_error = pow(curr_error, 2);
 			emp_error += curr_error;
@@ -730,6 +735,9 @@ int main(int argc, char * argv[]) {
 /*====================== TEST ERROR MEMORY ===============================*/
 #ifdef TEST_ERROR_MEMORY
 
+		double estimated, curr_error = 0;
+		double exact = 0;
+
 #ifdef HIT_TESTING
         for (i = 0; i < n; i++)  {
             hit->update(data[i], 1);
@@ -738,7 +746,7 @@ int main(int argc, char * argv[]) {
 
         for (i = 0; i < n; i++)  {
 			double exact = 0;
-			int first =  rand() % (n - interval_size_pkt);
+			int first =  rand() % (window_size - interval_size_pkt) + 1;
 			int last = first + interval_size_pkt;
 
 			for (int k = first; k<= last; ++k) {
@@ -766,7 +774,7 @@ int main(int argc, char * argv[]) {
 
         for (i = 0; i < n; i++)  {
 			double exact = 0;
-			int first =  rand() % (n - interval_size_pkt);
+			int first =  rand() % (window_size - interval_size_pkt) + 1;
 			int last = first + interval_size_pkt;
 
 			for (int k = first; k<= last; ++k) {
