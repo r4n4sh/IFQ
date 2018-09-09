@@ -779,6 +779,7 @@ int main(int argc, char * argv[]) {
 
 
 
+		free(window);
 
 #if defined(TEST_QUERY) | defined (EMP_ERROR)
 		free(intervals);
