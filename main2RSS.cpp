@@ -48,7 +48,7 @@ int main(int argc, char * argv[]) {
 		int w, x, y, z;
 		clock_t begint, endt;
 		struct timeb begintb, endtb;
-		unsigned * weights;
+		unsigned *weights;
 		unsigned * intervals;
 		unsigned long * data;
 		FILE * fp = NULL;
@@ -190,7 +190,7 @@ int main(int argc, char * argv[]) {
 #endif
 		epsilon = (double)1/(double)counters;
 		data = (unsigned long *) malloc(sizeof(unsigned long) * n);
-		weights = (unsigned *) malloc(sizeof(unsigned) * n);
+
 #if defined(TEST_QUERY) | defined(EMP_ERROR) | defined(TEST_QUERY_INTERVALS)
 		int range = 10;
 		int interval_arr_size = ceil(n/range);
@@ -231,7 +231,7 @@ int main(int argc, char * argv[]) {
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			data[i] = (unsigned long)256*((unsigned long)256*((unsigned long)256*w + x) + y) + z;
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
-			fscanf(fp, "%d", weights+i);
+			fscanf(fp, "%d", weights);
 #if defined(TEST_QUERY) | defined(EMP_ERROR) | defined(new_emp)
 			int interval_idx = i/range;
 			intervals[interval_idx] = 1 + (int)rand() % (int)(0.88 * window_size);
@@ -775,29 +775,24 @@ int main(int argc, char * argv[]) {
 #endif
 
 
-
-
-
-
-		free(window);
+		delete[] window;
 
 #if defined(TEST_QUERY) | defined(EMP_ERROR) | defined(TEST_QUERY_INTERVALS) | defined (new_emp)
 		free(intervals);
 #endif
-		free(weights);
 		free(data);
 
 #ifdef RAW_TESTING
-		free(raw);
+		delete raw;
 #endif
 #ifdef ACCK_TESTING
-		free(acck);
+		delete acck;
 #endif
 #ifdef BASE_WRSS_ALGO
-		free(bwrss);
+		delete bwrss;
 #endif
 #ifdef HIT_TESTING
-		free(hit);
+		delete hit;
 #endif
 		return 0;
 }
