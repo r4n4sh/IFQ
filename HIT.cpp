@@ -287,7 +287,9 @@ double HIT::intervalQuery(unsigned int item, int i, int j)
 
 double HIT::intervalFrequencyQuery(unsigned int item, int i, int j)
 {
-    return blockSize *(intervalQuery(item, ceil(i/blockSize), floor(j/blockSize)) + 2);
+//    return blockSize *(intervalQuery(item, ceil(i/blockSize), floor(j/blockSize)) + 2);
+    return blockSize *(intervalQuery(item, 0, floor(j/blockSize)) + 2);
+
 }
 
 double HIT::intervalQueryTest(unsigned int item, int i, int j)

@@ -51,7 +51,7 @@ ACC_K::ACC_K(unsigned int windowSize, float gamma, unsigned int m, float epsilon
     unsigned int level_size = blocksNumber + 1;
     for(int level = 0; level < k; level++) {
         overflowedArrLevels[level] = new unordered_map<unsigned int, unsigned int>* [level_size];
-        for(int i = 0 ; i < level_size ; i++)
+        for(int i = 0 ; i < level_size + 1 ; i++)
         	overflowedArrLevels[level][i] = new unordered_map<unsigned int, unsigned int> (maxOverflows);
 
       //  level_size = ceil(double(level_size / step)) + 1;
@@ -256,12 +256,16 @@ double ACC_K::winQuery(unsigned int itemIdx, int w) {
     int b = blocksNumber + lastBlock + 1 - w;
 
     int last_l = 0;
-    while (pow(step, last_l) * floor(lastBlock + 1 -w / (pow(step, last_l))))
+    while ((pow(step, last_l) * floor(b / (pow(step, last_l)))) >= lastBlock + 1)
       ++last_l;
     
+    if (last_l > 0)
+        --last_l;
+
+    last_l = min(last_l, (int)(k - 1));  
     int pre_w = 0;
     
-    for (int l = 0; l < last_l; ++l) {
+    for (int l = 0; l <= last_l; ++l) {
       cblock = pow(step, l) * floor(b/ (pow(step, l)));
       unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][cblock];
       if (table->find(itemIdx) != table->end()) {
@@ -269,7 +273,7 @@ double ACC_K::winQuery(unsigned int itemIdx, int w) {
       }
     }
 
-    for (int l = last_l + 1; l < k - 1; ++l) {
+    for (int l = last_l + 1; l <= k - 1; ++l) {
       pre_w += ghost_tables[l]->at(itemIdx);
     }
 
@@ -306,7 +310,9 @@ double ACC_K::intervalQuery(unsigned int item, int i, int j)
 
 double ACC_K::intervalFrequencyQuery(unsigned int item, int i, int j)
 {
-    return blockSize *(intervalQuery(item, ceil((double)i/(double)blockSize), floor((double)j/(double)blockSize)) + 2);
+//    return blockSize *(intervalQuery(item, ceil((double)i/(double)blockSize), floor((double)j/(double)blockSize)) + 2);
+    return blockSize *(intervalQuery(item, 0, floor((double)j/(double)blockSize)) + 2);
+
 }
 
 #ifdef ACC_K_DEBUGGING

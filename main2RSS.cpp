@@ -31,9 +31,9 @@
 #define TEST_QUERY_INTERVALS
 //#define TEST_ERROR_MEMORY
 
-#define HIT_TESTING 1
+//#define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
-//#define ACCK_TESTING 1
+#define ACCK_TESTING 1
 //#define RAW_TESTING 1
 
 double dblmainmax(double a, double b) {return (a >= b ? a : b);}
@@ -646,7 +646,9 @@ int main(int argc, char * argv[]) {
         begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            hit->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size);
+         //   hit->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size_pkt);
+              hit->intervalFrequencyQuery(data[i], 0, interval_size_pkt);
+
         }
 
 
@@ -672,7 +674,7 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
-            raw->intervalQuery(data[i], intervals[i], intervals[i] + interval_size);
+            raw->intervalQuery(data[i], intervals[i], intervals[i] + interval_size_pkt);
         }
 
 		endt = clock();
@@ -696,7 +698,9 @@ int main(int argc, char * argv[]) {
         begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            acck->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size);
+//            acck->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size_pkt);
+            acck->intervalFrequencyQuery(data[i], 0,  interval_size_pkt);
+
         }
 
 		endt = clock();
@@ -796,4 +800,3 @@ int main(int argc, char * argv[]) {
 #endif
 		return 0;
 }
-
