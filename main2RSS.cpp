@@ -28,8 +28,8 @@
 //#define new_emp
 //#define new_emp_acck
 //#define new_emp_hit
-#define TEST_QUERY_INTERVALS
-//#define TEST_ERROR_MEMORY
+//#define TEST_QUERY_INTERVALS
+#define TEST_ERROR_MEMORY
 
 //#define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
@@ -178,7 +178,7 @@ int main(int argc, char * argv[]) {
 
 		gamma = 0;
 		M = 1;
-		int k_algo = 1;
+		int k_algo = 4;
 
 #ifdef EMP_ERROR
 	//	window_size = 1 << 20;
@@ -638,16 +638,19 @@ int main(int argc, char * argv[]) {
             hit->intervalQuery(data[i], intervals[i/range], intervals[i/range] + interval_size);
         }
 */
+    	int first = rand() % (acck->getLastBlock()*block_sz - interval_size_pkt) + 1;
+		int last = first + interval_size_pkt;
 
+/*
         for (i = 0; i < (n/range); i++)  {
 			intervals[i] =  rand() % (window_size - interval_size_pkt) + 1;
-        }
+        }*/
         
         begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
          //   hit->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size_pkt);
-              hit->intervalFrequencyQuery(data[i], 0, interval_size_pkt);
+              hit->intervalFrequencyQuery(data[i], first, last);
 
         }
 
@@ -691,15 +694,19 @@ int main(int argc, char * argv[]) {
             acck->update(data[i], 1);
         }
 
+    	int first = rand() % (acck->getLastBlock()*block_sz - interval_size_pkt) + 1;
+		int last = first + interval_size_pkt;
+
+/*
         for (i = 0; i < (n/range); i++)  {
 			intervals[i] =  rand() % (window_size - interval_size_pkt) + 1;
-        }
+        }*/
         
         begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
 //            acck->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size_pkt);
-            acck->intervalFrequencyQuery(data[i], 0,  interval_size_pkt);
+            acck->intervalFrequencyQuery(data[i], first,  last);
 
         }
 
@@ -707,7 +714,7 @@ int main(int argc, char * argv[]) {
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
 
-		printf( "./acck %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+		printf( "./acc%d %d pairs took %lfs %dB [%d counters %d window_size]\n", k_algo, n, time, memory, counters, window_size);
 #endif
 
 #endif
@@ -729,7 +736,7 @@ int main(int argc, char * argv[]) {
 
         for (i = 0; i < n; i++)  {
 			double exact = 0;
-			int first =  rand() % (window_size - interval_size_pkt) + 1;
+			int first = rand() % (acck->getLastBlock()*block_sz - interval_size_pkt) + 1;
 			int last = first + interval_size_pkt;
 
 			for (int k = first; k<= last; ++k) {
@@ -757,8 +764,9 @@ int main(int argc, char * argv[]) {
 
         for (i = 0; i < n; i++)  {
 			double exact = 0;
-			int first =  rand() % (window_size - interval_size_pkt) + 1;
+			int first = rand() % (acck->getLastBlock()*block_sz - interval_size_pkt) + 1;
 			int last = first + interval_size_pkt;
+			
 
 			for (int k = first; k<= last; ++k) {
 				if (window[k] == data[i])
@@ -767,6 +775,7 @@ int main(int argc, char * argv[]) {
 
 			estimated = acck->intervalFrequencyQuery(data[i],  first,  last);
 
+			//cout << "test from first " << first << " to : " << last << " estimated: " << estimated << " exact: " << exact << endl;
 			curr_error = exact - estimated;
 			curr_error = pow(curr_error, 2);
 			emp_error += curr_error;

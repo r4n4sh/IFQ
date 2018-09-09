@@ -81,12 +81,12 @@ ACC_K::~ACC_K()
     delete[] ghost_tables;
 
     int level_size = blocksNumber + 1;
-
+/*
     for(int level = 0; level < k; level++) {
         for(int i = 0 ; i < level_size + 1 ; i++)
         	delete (overflowedArrLevels[level][i]);
         delete(overflowedArrLevels[level]);
-    }
+    }*/
     delete [] overflowedArrLevels;
     delete(totalOverflows);
     delete(rss);
@@ -279,7 +279,10 @@ double ACC_K::winQuery(unsigned int itemIdx, int w) {
     }
 
     for (int l = last_l + 1; l <= k - 1; ++l) {
-      pre_w += ghost_tables[l]->at(itemIdx);
+      unordered_map<unsigned int, unsigned int>* table = ghost_tables[l];
+      if (table->find(itemIdx) != table->end()) {
+              pre_w += ghost_tables[l]->at(itemIdx);
+      }
     }
 
 
@@ -315,8 +318,8 @@ double ACC_K::intervalQuery(unsigned int item, int i, int j)
 
 double ACC_K::intervalFrequencyQuery(unsigned int item, int i, int j)
 {
-//    return blockSize *(intervalQuery(item, ceil((double)i/(double)blockSize), floor((double)j/(double)blockSize)) + 2);
-    return blockSize *(intervalQuery(item, 0, floor((double)j/(double)blockSize)) + 2);
+    return blockSize *(intervalQuery(item, ceil((double)i/(double)blockSize), floor((double)j/(double)blockSize)) + 2);
+//    return blockSize *(intervalQuery(item, 0, floor((double)j/(double)blockSize)) + 2);
 
 }
 
