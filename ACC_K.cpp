@@ -70,17 +70,21 @@ ACC_K::ACC_K(unsigned int windowSize, float gamma, unsigned int m, float epsilon
 ACC_K::~ACC_K()
 {
 
+    for(int i =0 ; i < blocksNumber ; i++)
+        delete (incTable[i]);
+
+    delete (incTable);
+
     for (int i = 0; i < k -1; ++i) {
     	delete (ghost_tables[i]);
     }
     delete[] ghost_tables;
-    int level_size = blocksNumber;
+    int level_size = blocksNumber + 1;
 
     for(int level = 0; level < k; level++) {
-        for(int i = 0 ; i < level_size ; i++)
+        for(int i = 0 ; i < level_size + 1 ; i++)
         	delete (overflowedArrLevels[level][i]);
         delete(overflowedArrLevels[level]);
-        level_size = ceil(double(level_size / step));
     }
     delete [] overflowedArrLevels;
     delete(totalOverflows);

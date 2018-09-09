@@ -124,6 +124,8 @@ HIT::HIT(unsigned int windowSize, float gamma, unsigned int m, float epsilon)
 HIT::~HIT()
 {
 	delete[] levelToidx;
+
+    delete (incTable);
     for (int i = 0; i < skiplistSize; i++)
     	delete(skiplistMap[i]);
     delete[] skiplistMap;
