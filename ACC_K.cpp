@@ -79,8 +79,7 @@ ACC_K::~ACC_K()
     	delete (ghost_tables[i]);
     }
     delete[] ghost_tables;
-    
-    delete[] ghost_tables;
+
     int level_size = blocksNumber + 1;
 
     for(int level = 0; level < k; level++) {
