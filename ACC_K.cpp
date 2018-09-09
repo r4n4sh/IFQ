@@ -128,7 +128,7 @@ void ACC_K::endBlock(int blockNumber)
     for (auto it = incTable[l]->begin(); it != incTable[l]->end(); ++it)
         overflowedArrLevels[l][lastBlock]->insert(pair<unsigned int, unsigned int>(it->first, it->second));
 
-    if ((lastBlock % blocksNumber) == 0) {
+    if (lastBlock  == blocksNumber) {
       incTable[k-1]->clear();
       ghost_tables[k-1]->clear();
     }
@@ -311,15 +311,13 @@ double ACC_K::intervalQuery(unsigned int item, int i, int j)
       sum = abs((int)(winQuery(itemIdx, j) - winQuery(itemIdx, i)));
 	}
 
-	//return blockSize * (sum + 2);
-  return blockSize * (sum );
+    return sum;
 
 }
 
 double ACC_K::intervalFrequencyQuery(unsigned int item, int i, int j)
 {
     return blockSize *(intervalQuery(item, ceil((double)i/(double)blockSize), floor((double)j/(double)blockSize)) + 2);
-//    return blockSize *(intervalQuery(item, 0, floor((double)j/(double)blockSize)) + 2);
 
 }
 
