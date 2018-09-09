@@ -781,14 +781,17 @@ int main(int argc, char * argv[]) {
 
 		free(window);
 
-#if defined(TEST_QUERY) | defined (EMP_ERROR)
+#if defined(TEST_QUERY) | defined(EMP_ERROR) | defined(TEST_QUERY_INTERVALS) | defined (new_emp)
 		free(intervals);
 #endif
-#ifndef EMP_ERROR
+		free(weights);
 		free(data);
-#endif
+
 #ifdef RAW_TESTING
 		free(raw);
+#endif
+#ifdef ACCK_TESTING
+		free(acck);
 #endif
 #ifdef BASE_WRSS_ALGO
 		free(bwrss);
