@@ -178,7 +178,7 @@ int main(int argc, char * argv[]) {
 
 		gamma = 0;
 		M = 1;
-		int k_algo = 4;
+		int k_algo = 2;
 
 #ifdef EMP_ERROR
 	//	window_size = 1 << 20;
@@ -734,6 +734,8 @@ int main(int argc, char * argv[]) {
         }
 
 
+		interval_size_pkt = ceil(size_precentage * acck->getLastBlock()*block_sz); // 10% of window_size
+
         for (i = 0; i < n; i++)  {
 			double exact = 0;
 			int first = rand() % (acck->getLastBlock()*block_sz - interval_size_pkt) + 1;
@@ -761,6 +763,8 @@ int main(int argc, char * argv[]) {
             acck->update(data[i], 1);
         }
 
+
+		interval_size_pkt = ceil(size_precentage * acck->getLastBlock()*block_sz); // 10% of window_size
 
         for (i = 0; i < n; i++)  {
 			double exact = 0;
