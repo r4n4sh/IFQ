@@ -28,8 +28,8 @@
 //#define new_emp
 //#define new_emp_acck
 //#define new_emp_hit
-//#define TEST_QUERY_INTERVALS
-#define TEST_ERROR_MEMORY
+#define TEST_QUERY_INTERVALS
+//#define TEST_ERROR_MEMORY
 
 #define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
@@ -178,7 +178,7 @@ int main(int argc, char * argv[]) {
 
 		gamma = 0;
 		M = 1;
-		int k_algo = 4;
+		int k_algo = 1;
 
 #ifdef EMP_ERROR
 	//	window_size = 1 << 20;
@@ -191,7 +191,7 @@ int main(int argc, char * argv[]) {
 		epsilon = (double)1/(double)counters;
 		data = (unsigned long *) malloc(sizeof(unsigned long) * n);
 		weights = (unsigned *) malloc(sizeof(unsigned) * n);
-#if defined(TEST_QUERY) | defined(EMP_ERROR)
+#if defined(TEST_QUERY) | defined(EMP_ERROR) | defined(TEST_QUERY_INTERVALS)
 		int range = 10;
 		int interval_arr_size = ceil(n/range);
 		intervals = (unsigned *) malloc(sizeof(unsigned) * interval_arr_size);
@@ -640,7 +640,7 @@ int main(int argc, char * argv[]) {
 */
 
         for (i = 0; i < (n/range); i++)  {
-			intervals[i] = 1 + rand() % (n - interval_size_pkt);
+			intervals[i] =  rand() % (window_size - interval_size_pkt) + 1;
         }
         
         begint = clock();
@@ -657,27 +657,6 @@ int main(int argc, char * argv[]) {
 		memory = maxmemusage();
 
 		printf( "./hhh2RSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
-#endif
-
-#ifdef BASE_WRSS_ALGO
-        for (i = 0; i < n; i++)  {
-        	bwrss->update(data[i], 1);
-        }
-
-		begint = clock();
-		ftime(&begintb);
-
-        for (i = 0; i < n; i++)  {
-            bwrss->query(data[i]);
-        }
-
-		endt = clock();
-		ftime(&endtb);
-
-		time = ((double)(endt-begint))/CLK_PER_SEC;
-		memory = maxmemusage();
-
-		printf( "./baseWRSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
 
 #ifdef RAW_TESTING
@@ -711,7 +690,7 @@ int main(int argc, char * argv[]) {
         }
 
         for (i = 0; i < (n/range); i++)  {
-			intervals[i] = 1 + rand() % (n - interval_size_pkt);
+			intervals[i] =  rand() % (window_size - interval_size_pkt) + 1;
         }
         
         begint = clock();
@@ -763,7 +742,7 @@ int main(int argc, char * argv[]) {
 
 		emp_error = sqrt((emp_error/n));
 
-		printf( "./hhh2RSS %d pairs emp error: %lf [%d counters %d window_size]\n", n, emp_error, counters, window_size);
+		printf( "./hit %d pairs emp error: %lf [%d counters %d window_size]\n", n, emp_error, counters, window_size);
 #endif
 
 #ifdef ACCK_TESTING
