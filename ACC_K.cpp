@@ -73,11 +73,13 @@ ACC_K::~ACC_K()
     for(int i =0 ; i < blocksNumber ; i++)
         delete (incTable[i]);
 
-    delete (incTable);
+    delete[] (incTable);
 
     for (int i = 0; i < k -1; ++i) {
     	delete (ghost_tables[i]);
     }
+    delete[] ghost_tables;
+    
     delete[] ghost_tables;
     int level_size = blocksNumber + 1;
 
