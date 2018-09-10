@@ -70,6 +70,7 @@ private:
     unordered_map<unsigned int, unsigned int>*** overflowedArrLevels;
     unordered_map<unsigned int, unsigned int> **incTable;
     unordered_map<unsigned int, unsigned int> **ghost_tables;
+    int getBlock(int block, int level);
 
 };
 
