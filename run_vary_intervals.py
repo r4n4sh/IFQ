@@ -75,6 +75,10 @@ for dataset in datasets:
         fn = "./hhh2RSS"
         speeds = []
         range = 1
+        k_algo = 1
+
+        if (sys.argv[1].find("acc") != -1):
+            k_algo = re.sub(r'\D', "", sys.argv[1])
 
         results = {}
         first_iteration = True
@@ -84,7 +88,7 @@ for dataset in datasets:
                         command = [fn,"-t", str(sz)]
                         print command
                         if target_file:
-                                command += ["-np", str(n), "-c", str(epsilon), "-f", target_file, "-M", str(M), "-gamma", str(gamma), "-w", str(window_size)]
+                                command += ["-np", str(n), "-c", str(epsilon), "-f", target_file, "-M", str(M), "-gamma", str(gamma), "-w", str(window_size), "-k", k_algo]
                         print " ".join(command)
                         out = subprocess.check_output(command)
                         if (range == 0):

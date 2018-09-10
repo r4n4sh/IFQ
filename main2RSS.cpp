@@ -37,7 +37,7 @@ double dblmainmax(double a, double b) {return (a >= b ? a : b);}
 int main(int argc, char * argv[]) {
 		int counters = 100;
 		int n = 100000;
-		int k =1;
+		int k_algo = 2;
 		double time;
 		int memory;
 		int i;
@@ -89,7 +89,7 @@ int main(int argc, char * argv[]) {
 					std::cout  << "Missing k" << std::endl;
 					return -1;
 				}
-				k = atoi(argv[i]);
+				k_algo = atoi(argv[i]);
 			}
 			else if (strcmp(argv[i], "-t") == 0)
 			{
@@ -174,7 +174,6 @@ int main(int argc, char * argv[]) {
 
 		gamma = 0;
 		M = 1;
-		int k_algo = 2;
 
 
 #ifdef TEST_QUERY_INTERVALS
