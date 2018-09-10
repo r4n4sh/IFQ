@@ -44,18 +44,18 @@ ACC_K::ACC_K(unsigned int windowSize, float gamma, unsigned int m, float epsilon
     overflowsElements = new unsigned int[maxOverflows];
     rss = new RSS_CPP(epsilon, m, gamma);//y
     totalOverflows = new unordered_map<int, int> (maxOverflows);//B TODO: allocate static?
-    overflowedArrLevels = new unordered_map<unsigned int, unsigned int>**[k];
     ghost_tables = new unordered_map<unsigned int, unsigned int>*[k];
 
 
+    overflowedArrLevels = new unordered_map<unsigned int, unsigned int>**[k];
     unsigned int level_size = blocksNumber + 1;
     for(int level = 0; level < k; level++) {
-        overflowedArrLevels[level] = new unordered_map<unsigned int, unsigned int>* [level_size];
+            overflowedArrLevels[level] = new unordered_map<unsigned int, unsigned int>*[level_size + 1];
         for(int i = 0 ; i < level_size + 1 ; i++)
-        	overflowedArrLevels[level][i] = new unordered_map<unsigned int, unsigned int> (maxOverflows);
+            overflowedArrLevels[level][i] = new unordered_map<unsigned int, unsigned int> (maxOverflows);
 
-      //  level_size = ceil(double(level_size / step)) + 1;
     }
+
 
     for (int i = 0; i < k; ++i) {
     	ghost_tables[i] = new unordered_map<unsigned int, unsigned int> (maxOverflows);
@@ -81,13 +81,17 @@ ACC_K::~ACC_K()
     delete[] ghost_tables;
 
     int level_size = blocksNumber + 1;
-/*
+
     for(int level = 0; level < k; level++) {
-        for(int i = 0 ; i < level_size + 1 ; i++)
+        for(int i = 0 ; i < level_size + 1 ; i++) {
         	delete (overflowedArrLevels[level][i]);
-        delete(overflowedArrLevels[level]);
-    }*/
+        }
+        delete[] overflowedArrLevels[level];
+    }
+
     delete [] overflowedArrLevels;
+    overflowedArrLevels = NULL;
+
     delete(totalOverflows);
     delete(rss);
     delete [] overflowsElements;

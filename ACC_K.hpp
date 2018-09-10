@@ -67,7 +67,7 @@ private:
 
     /* ACC_K Algorithm */
     unordered_map<unsigned int, unsigned int> idToIDx;
-    unordered_map<unsigned int, unsigned int> ***overflowedArrLevels;
+    unordered_map<unsigned int, unsigned int>*** overflowedArrLevels;
     unordered_map<unsigned int, unsigned int> **incTable;
     unordered_map<unsigned int, unsigned int> **ghost_tables;
 
