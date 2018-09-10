@@ -2,13 +2,8 @@
 import subprocess
 import random
 import math
-import matplotlib as mpl
-from matplotlib import pyplot as plt
-from matplotlib import ticker
-import numpy as np
 import re
 import cPickle
-import numpy
 import sys
 
 
