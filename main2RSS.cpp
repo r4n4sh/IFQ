@@ -22,12 +22,8 @@
 
 /*********** TESTS ***************/
 
-//#define TEST_UPDATE 1
-//#define TEST_QUERY 1
-//#define EMP_ERROR
-//#define new_emp
-//#define new_emp_acck
-//#define new_emp_hit
+//#define TEST_UPDATE 
+//#define TEST_QUERY
 //#define TEST_QUERY_INTERVALS
 #define TEST_ERROR_MEMORY
 
@@ -180,9 +176,6 @@ int main(int argc, char * argv[]) {
 		M = 1;
 		int k_algo = 2;
 
-#ifdef EMP_ERROR
-	//	window_size = 1 << 20;
-#endif
 
 #ifdef TEST_QUERY_INTERVALS
 		window_size = 1 << 20; // default window = 2^20
@@ -191,7 +184,7 @@ int main(int argc, char * argv[]) {
 		epsilon = (double)1/(double)counters;
 		data = (unsigned long *) malloc(sizeof(unsigned long) * n);
 
-#if defined(TEST_QUERY) | defined(EMP_ERROR) | defined(TEST_QUERY_INTERVALS)
+#if defined(TEST_QUERY)  | defined(TEST_QUERY_INTERVALS)
 		int range = 10;
 		int interval_arr_size = ceil(n/range);
 		intervals = (unsigned *) malloc(sizeof(unsigned) * interval_arr_size);
@@ -203,15 +196,6 @@ int main(int argc, char * argv[]) {
 		float size_precentage = percentage/100.0; // percenatge%
 		interval_size_pkt = ceil(size_precentage * window_size); // 10% of window_size
 		interval_size = interval_size_pkt /block_sz;
-
-
-#ifdef new_emp
-		int range = 10;
-
-		int interval_arr_size = ceil(n/range);
-		intervals = (unsigned *) malloc(sizeof(unsigned) * interval_arr_size);
-#endif
-
 
 #ifdef HIT_TESTING
 		HIT *hit = new HIT(window_size, gamma, M, epsilon);
@@ -232,204 +216,16 @@ int main(int argc, char * argv[]) {
 			data[i] = (unsigned long)256*((unsigned long)256*((unsigned long)256*w + x) + y) + z;
 			fscanf(fp, "%d%d%d%d", &w, &x, &y, &z);
 			fscanf(fp, "%d", weights);
-#if defined(TEST_QUERY) | defined(EMP_ERROR) | defined(new_emp)
+#if defined(TEST_QUERY)
 			int interval_idx = i/range;
 			intervals[interval_idx] = 1 + (int)rand() % (int)(0.88 * window_size);
 #endif
 
-#if defined (new_emp) | defined(TEST_ERROR_MEMORY) 
+#if defined(TEST_ERROR_MEMORY) 
 			window[i%test_window] = data[i];
 #endif
 
-
-
-
-/*============== TEMP EMPIRICAL ERROR ================*/
-#ifdef EMP_ERROR
-			double estimated, curr_error = 0;
-			window[i%window_size] = data[i];
-#ifdef HIT_TESTING
-			hit->update(data[i], 1);
-#endif
-#ifdef BASE_WRSS_ALGO
-			bwrss->update(data[i], 1);
-#endif
-#ifdef RAW_TESTING
-			raw->update(data[i], 1);
-#endif
-#ifdef ACCK_TESTING
-			acck->update(data[i], 1);
-#endif
-		int debug = 0;
-
-		if (true) {
-			double exact = 0;
-
-
-			if (intervals[interval_idx] + interval_size <= i) {
-
-				for (int k=intervals[interval_idx]; k<intervals[interval_idx] + interval_size; ++k) {
-					if (window[k-1] == data[i]) {
-						exact += 1;
-					}
-				}
-#ifdef HIT_TESTING
-				estimated = hit->intervalQuery(data[i], intervals[interval_idx], intervals[interval_idx] + interval_size);
-#endif
-#ifdef BASE_WRSS_ALGO
-				estimated = bwrss->intervalQuery(data[i], intervals[interval_idx], intervals[interval_idx] + interval_size);
-#endif
-#ifdef RAW_TESTING
-				printf("before query raw\n");
-				estimated = raw->intervalQuery(data[i], intervals[interval_idx], intervals[interval_idx] + interval_size);
-#endif
-#ifdef ACCK_TESTING
-				estimated = acck->intervalQuery(data[i], intervals[interval_idx], intervals[interval_idx] + interval_size);
-#endif
-
-				curr_error = exact - estimated;
-				printf("[%d] estimated: %f exact: %f curr_error: %f, interval: [%d, %d]\n", i, estimated, exact, curr_error, intervals[interval_idx],intervals[interval_idx] + interval_size);
-				curr_error = pow(curr_error, 2);
-				emp_error += curr_error;
-				}
-			}
 		}
-		emp_error = sqrt((emp_error/n));
-
-#ifdef HIT_TESTING
-		printf( "[%d] ./hit empirical error: %f\n", i , emp_error);
-#endif
-#ifdef BASE_WRSS_ALGO
-		printf( "./baseWRSS empirical error: %f\n",emp_error);
-#endif
-#ifdef RAW_TESTING
-		printf( "./raw empirical error: %f\n",emp_error);
-#endif
-#ifdef ACCK_TESTING
-		printf( "./acck empirical error: %f\n",emp_error);
-#endif
-#else
-	}
-#endif
-
-
-
-
-
-
-/*================== EMPIRICAL ERROR ===================*/
-
-
-
-
-#if defined(new_emp) && defined (new_emp_hit)
-
-		double estimated, curr_error = 0;
-		double exact = 0;
-		int interval_idx = 0;
-
-        for (i = 0; i < n; i++)  {
-            hit->update(data[i], 1);
-        }
-
-
-        for (i = 0; i < n; i++)  {
-			double exact = 0;
-
-			int i = rand() % hit->getLastBlock();
-			int interval_size = rand() % (hit->getLastBlock() - i);
-			int j = i + interval_size;
-			if (j > hit->getLastBlock())
-				j = hit->getLastBlock();
-	        int b1 = hit->getLastBlock() - j;
-	        int b2 = b1 + interval_size;
-
-			for (int k = b1*block_sz; k<= b2*block_sz; ++k) {
-				if (window[k] == data[i])
-					exact += 1;
-			}
-        
-        	 if (b1 == b2)
-        	 	exact = block_sz;
-
-
-			estimated = hit->intervalQuery(data[i], i, j);
-
-
-			/*
-			int first =  rand() % (n - interval_size_pkt);
-			int last = first + interval_size_pkt;
-
-			for (int k = first; k<= last; ++k) {
-				if (window[k] == data[i])
-					exact += 1;
-			}
-
-			estimated = hit->intervalFrequencyQuery(data[i],  first,  last);
-*/
-			cout << "estimated: " << estimated << " exact: " << exact << endl;
-			curr_error = exact - estimated;
-			curr_error = pow(curr_error, 2);
-			emp_error += curr_error;
-        }
-
-		emp_error = sqrt((emp_error/n));
-
-		printf( "./hit empirical error: %f [%d counters %d window_size]\n", emp_error, counters, window_size);
-
-#endif
-
-#if defined(new_emp) && defined (new_emp_acck)
-		double estimated, curr_error = 0;
-		double exact = 0;
-		int interval_idx = 0;
-
-        for (i = 0; i < n; i++)  {
-            acck->update(data[i], 1);
-        }
-
-
-        for (i = 0; i < n; i++)  {
-			double exact = 0;
-
-			int i = rand() % acck->getLastBlock();
-			int interval_size = rand() % (acck->getLastBlock() - i);
-			int j = i + interval_size;
-			if (j > acck->getLastBlock())
-				j = acck->getLastBlock();
-	        int b1 = acck->getLastBlock() - j;
-	        int b2 = b1 + interval_size;
-
-			for (int k = b1*block_sz + 1; k<= b2*block_sz; ++k) {
-				if (window[k] == data[i])
-					exact += 1;
-			}
-        
-
-			estimated = acck->intervalQuery(data[i], i, j);
-
-			/*
-			int first =  rand() % (n - interval_size_pkt);
-			int last = first + interval_size_pkt;
-
-			for (int k = first; k<= last; ++k) {
-				if (window[k] == data[i])
-					exact += 1;
-			}
-
-			estimated = acck->intervalFrequencyQuery(data[i],  first,  last);
-*/
-			curr_error = exact - estimated;
-			curr_error = pow(curr_error, 2);
-			emp_error += curr_error;
-        }
-
-		emp_error = sqrt((emp_error/n));
-
-		printf( "./acc%d empirical error: %f [%d counters %d window_size]\n",k_algo, emp_error, counters, window_size);
-
-#endif
-
 
 
 
@@ -506,10 +302,6 @@ int main(int argc, char * argv[]) {
 #endif
 
 #endif
-
-
-
-
 
 
 
@@ -794,7 +586,7 @@ int main(int argc, char * argv[]) {
 
 		delete[] window;
 
-#if defined(TEST_QUERY) | defined(EMP_ERROR) | defined(TEST_QUERY_INTERVALS) | defined (new_emp)
+#if defined(TEST_QUERY) | defined(TEST_QUERY_INTERVALS)
 		free(intervals);
 #endif
 		free(data);
