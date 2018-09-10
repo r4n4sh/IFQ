@@ -53,7 +53,7 @@ ACC_K::ACC_K(unsigned int windowSize, float gamma, unsigned int m, float epsilon
             overflowedArrLevels[level] = new unordered_map<unsigned int, unsigned int>*[level_size + 1];
         for(int i = 0 ; i < level_size + 1 ; i++)
             overflowedArrLevels[level][i] = new unordered_map<unsigned int, unsigned int> (maxOverflows);
-
+        level_size = ceil(double(level_size / step)) + 1;
     }
 
 
@@ -87,6 +87,7 @@ ACC_K::~ACC_K()
         	delete (overflowedArrLevels[level][i]);
         }
         delete[] overflowedArrLevels[level];
+        level_size = ceil(double(level_size / step)) + 1;
     }
 
     delete [] overflowedArrLevels;
