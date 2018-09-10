@@ -19,6 +19,10 @@ unsigned int firstOverflow;
 unsigned int thirdOverflow;
 #endif
 
+int ACC_K::getBlock(int block, int level)
+{
+    return (floor(block/pow(step, level)));
+}
 ACC_K::ACC_K(unsigned int windowSize, float gamma, unsigned int m, float epsilon, unsigned int k)
 {
 	this->k = k;
@@ -127,11 +131,11 @@ void ACC_K::endBlock(int blockNumber)
             ++l;
     }
 
-    for (auto it = overflowedArrLevels[l][lastBlock]->begin(); it != overflowedArrLevels[l][lastBlock]->end(); ++it)
+    for (auto it = overflowedArrLevels[l][getBlock(lastBlock, l)]->begin(); it != overflowedArrLevels[l][getBlock(lastBlock, l)]->end(); ++it)
         ghost_tables[l]->insert(pair<unsigned int, unsigned int>(it->first, it->second));
 
     for (auto it = incTable[l]->begin(); it != incTable[l]->end(); ++it)
-        overflowedArrLevels[l][lastBlock]->insert(pair<unsigned int, unsigned int>(it->first, it->second));
+        overflowedArrLevels[l][getBlock(lastBlock, l)]->insert(pair<unsigned int, unsigned int>(it->first, it->second));
 
     if (lastBlock  == blocksNumber) {
       incTable[k-1]->clear();
@@ -236,7 +240,7 @@ double ACC_K::winQuery(unsigned int itemIdx, int w) {
   for (int l = 1; l <= lastLevel; ++l) {
     cblock = pow(step, l) * floor(lastBlock / (pow(step, l)));
 
-    unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][cblock];
+    unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][getBlock(cblock, l)];
     if (table->find(itemIdx) != table->end()) {
       cFreq += table->at(itemIdx);
     }
@@ -254,7 +258,7 @@ double ACC_K::winQuery(unsigned int itemIdx, int w) {
       //cblock = pow(step, l) * floor((lastBlock + 1 -w) / (pow(step, l)));
       cblock = pow(step, l) * floor((lastBlock -w) / (pow(step, l)));
 
-      unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][cblock];
+      unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][getBlock(cblock, l)];
       if (table->find(itemIdx) != table->end()) {
         tmp_res += table->at(itemIdx);
       }
@@ -277,7 +281,7 @@ double ACC_K::winQuery(unsigned int itemIdx, int w) {
     
     for (int l = 0; l <= last_l; ++l) {
       cblock = pow(step, l) * floor(b/ (pow(step, l)));
-      unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][cblock];
+      unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[l][getBlock(cblock, l)];
       if (table->find(itemIdx) != table->end()) {
         pre_w += table->at(itemIdx);
       }
@@ -291,7 +295,7 @@ double ACC_K::winQuery(unsigned int itemIdx, int w) {
     }
 
 
-    unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[k-1][blocksNumber];
+    unordered_map<unsigned int, unsigned int>* table = overflowedArrLevels[k-1][getBlock(blocksNumber, k-1)];
     if (table->find(itemIdx) != table->end()) {
       cFreq += table->at(itemIdx);
     }
