@@ -71,9 +71,7 @@ for dataset in datasets:
         window_size = 1048576
         eprange = dict()
 
-        #eprange["hit"]= range(10,15)
-        eprange["hit"]= range(3,8) #just tes
-
+        eprange["hit"]= range(10,15)
         eprange["acc1"]=range(6,9)
         eprange["acc2"]=range(8,12)
         eprange["acc4"]=range(9,14)
@@ -85,15 +83,18 @@ for dataset in datasets:
         fn = "./hhh2RSS"
         speeds = []
         range = 1
+        k_algo = 1
 
         results = {}
         first_iteration = True
         for epsilon in epsilons:
                 timing_list = []
-                    
+                if (sys.argv[1].find("acc") != -1):
+                    k_algo = re.sub(r'\D', "", sys.argv[1])
+
                 command = [fn,"-c", str(epsilon)]
                 if target_file:
-                    command += ["-np", str(n), "-t", str(threshold), "-f", target_file, "-M", str(M), "-gamma", str(gamma), "-w", str(window_size)]
+                    command += ["-np", str(n), "-t", str(threshold), "-f", target_file, "-M", str(M), "-gamma", str(gamma), "-w", str(window_size), "-k", k_algo]
                 print " ".join(command)
                 out = subprocess.check_output(command)
                 if (range == 0):

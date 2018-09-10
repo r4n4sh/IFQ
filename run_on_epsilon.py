@@ -94,6 +94,10 @@ for dataset in datasets:
         fn = "./hhh2RSS"
         speeds = []
         range = 1
+        k_algo = 1
+
+        if (sys.argv[1].find("acc") != -1):
+            k_algo = re.sub(r'\D', "", sys.argv[1])
 
         results = {}
         first_iteration = True
@@ -102,7 +106,7 @@ for dataset in datasets:
                 for run in xrange(RUNS):
                         command = [fn,"-c", str(epsilon)]
                         if target_file:
-                                command += ["-np", str(n), "-t", str(threshold), "-f", target_file, "-M", str(M), "-gamma", str(gamma), "-w", str(window_size)]
+                                command += ["-np", str(n), "-t", str(threshold), "-f", target_file, "-M", str(M), "-gamma", str(gamma), "-w", str(window_size), "-k", k_algo]
                         print " ".join(command)
 
                         out = subprocess.check_output(command)
