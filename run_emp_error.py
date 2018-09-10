@@ -66,7 +66,7 @@ for dataset in datasets:
         #LAST_PHINDEX = 14 #for RAW
         gamma = 1
         #n = 10000000
-        n = 10000
+        n = 34095360
         threshold = 1
         window_size = 1048576
         eprange = dict()
