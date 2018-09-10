@@ -75,7 +75,7 @@ ACC_K::~ACC_K()
 
     delete[] (incTable);
 
-    for (int i = 0; i < k -1; ++i) {
+    for (int i = 0; i < k; ++i) {
     	delete (ghost_tables[i]);
     }
     delete[] ghost_tables;
