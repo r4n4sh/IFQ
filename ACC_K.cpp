@@ -62,7 +62,7 @@ ACC_K::ACC_K(unsigned int windowSize, float gamma, unsigned int m, float epsilon
     }
 
     incTable = new unordered_map<unsigned int, unsigned int>*[blocksNumber];
-    for(int i =0 ; i < blocksNumber ; i++)
+    for(int i =0 ; i < k ; i++)
         incTable[i] =  new unordered_map<unsigned int, unsigned int> (maxOverflows);
 
 }
@@ -70,7 +70,7 @@ ACC_K::ACC_K(unsigned int windowSize, float gamma, unsigned int m, float epsilon
 ACC_K::~ACC_K()
 {
 
-    for(int i =0 ; i < blocksNumber ; i++)
+    for(int i =0 ; i < k ; i++)
         delete (incTable[i]);
 
     delete[] (incTable);
