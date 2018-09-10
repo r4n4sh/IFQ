@@ -261,7 +261,7 @@ int main(int argc, char * argv[]) {
 
 			estimated = acck->intervalFrequencyQuery(data[i],  first,  last);
 
-			cout << "test from first " << first << " to : " << last << " estimated: " << estimated << " exact: " << exact << endl;
+			//cout << "test from first " << first << " to : " << last << " estimated: " << estimated << " exact: " << exact << endl;
 			curr_error = exact - estimated;
 			curr_error = pow(curr_error, 2);
 			emp_error += curr_error;
