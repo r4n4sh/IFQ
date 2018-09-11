@@ -24,8 +24,8 @@
 
 //#define TEST_UPDATE 
 //#define TEST_QUERY
-//#define TEST_QUERY_INTERVALS
-#define TEST_ERROR_MEMORY
+#define TEST_QUERY_INTERVALS
+//#define TEST_ERROR_MEMORY
 
 //#define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
@@ -415,6 +415,9 @@ int main(int argc, char * argv[]) {
             hit->update(data[i], 1);
         }
 
+
+		interval_size_pkt = ceil(size_precentage * acck->getLastBlock()*block_sz); // 10% of window_size
+
 /*
     	assert(hit->getLastBlock() > interval_size);
 
@@ -464,6 +467,7 @@ int main(int argc, char * argv[]) {
 			intervals[i] = 1 + rand() % (n - interval_size_pkt);
         }
 
+
 		begint = clock();
 		ftime(&begintb);
 
@@ -484,6 +488,8 @@ int main(int argc, char * argv[]) {
         for (i = 0; i < n; i++)  {
             acck->update(data[i], 1);
         }
+
+		interval_size_pkt = ceil(size_precentage * acck->getLastBlock()*block_sz); // 10% of window_size
 
     	int first = rand() % (acck->getLastBlock()*block_sz - interval_size_pkt) + 1;
 		int last = first + interval_size_pkt;
