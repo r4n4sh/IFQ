@@ -27,9 +27,9 @@
 #define TEST_QUERY_INTERVALS
 //#define TEST_ERROR_MEMORY
 
-//#define HIT_TESTING 1
+#define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
-#define ACCK_TESTING 1
+//#define ACCK_TESTING 1
 //#define RAW_TESTING 1
 
 double dblmainmax(double a, double b) {return (a >= b ? a : b);}
@@ -416,7 +416,7 @@ int main(int argc, char * argv[]) {
         }
 
 
-		interval_size_pkt = ceil(size_precentage * acck->getLastBlock()*block_sz); // 10% of window_size
+		interval_size_pkt = ceil(size_precentage * hit->getLastBlock()*block_sz); // 10% of window_size
 
 /*
     	assert(hit->getLastBlock() > interval_size);
@@ -432,7 +432,7 @@ int main(int argc, char * argv[]) {
             hit->intervalQuery(data[i], intervals[i/range], intervals[i/range] + interval_size);
         }
 */
-    	int first = rand() % (acck->getLastBlock()*block_sz - interval_size_pkt) + 1;
+    	int first = rand() % (hit->getLastBlock()*block_sz - interval_size_pkt) + 1;
 		int last = first + interval_size_pkt;
 
 /*
@@ -455,7 +455,7 @@ int main(int argc, char * argv[]) {
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
 
-		printf( "./hhh2RSS %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+		printf( "./hit %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
 #endif
 
 #ifdef RAW_TESTING
