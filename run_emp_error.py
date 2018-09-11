@@ -83,7 +83,7 @@ for dataset in datasets:
         fn = "./hhh2RSS"
         speeds = []
         range = 1
-        k_algo = 1
+        k_algo = str(1)
 
         results = {}
         first_iteration = True
