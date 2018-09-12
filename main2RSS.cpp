@@ -535,7 +535,7 @@ int main(int argc, char * argv[]) {
 
         for (i = 0; i < n; i++)  {
 			double exact = 0;
-			int first = rand() % (acck->getLastBlock()*block_sz - interval_size_pkt) + 1;
+			int first = rand() % (hit->getLastBlock()*block_sz - interval_size_pkt) + 1;
 			int last = first + interval_size_pkt;
 
 			for (int k = first; k<= last; ++k) {
