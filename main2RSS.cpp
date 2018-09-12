@@ -531,7 +531,7 @@ int main(int argc, char * argv[]) {
         }
 
 
-		interval_size_pkt = ceil(size_precentage * acck->getLastBlock()*block_sz); // 10% of window_size
+		interval_size_pkt = ceil(size_precentage * hit->getLastBlock()*block_sz); // 10% of window_size
 
         for (i = 0; i < n; i++)  {
 			double exact = 0;
