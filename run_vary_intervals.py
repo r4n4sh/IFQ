@@ -36,8 +36,7 @@ for dataset in datasets:
 
         target_file = None
         M = 1
-        #f = open(dataset+ sys.argv[1] + "_epsilon"+".txt", "w+")
-        f = open("test_run_vary_.txt", "w+")
+        f = open(dataset+ sys.argv[1] + "_vary_intervals_epsilon"+".txt", "w+")
 
         if dataset == "Chicago16":
                 target_file = "/home/ranas/wrss/Chicago16Weighted.txt"
