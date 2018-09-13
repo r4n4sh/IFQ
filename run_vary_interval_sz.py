@@ -65,7 +65,7 @@ for dataset in datasets:
 
 
 
-        RUNS = 1
+        RUNS = 10
         gamma = 1
         n = 10000000
         threshold = 1
