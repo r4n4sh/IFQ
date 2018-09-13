@@ -592,7 +592,7 @@ int main(int argc, char * argv[]) {
 		delete[] window;
 
 #if defined(TEST_QUERY) | defined(TEST_QUERY_INTERVALS)
-		free(intervals);
+	//	free(intervals);
 #endif
 		free(data);
 
