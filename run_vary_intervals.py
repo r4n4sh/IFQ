@@ -87,7 +87,7 @@ for dataset in datasets:
                         print " ".join(command)
                         out = subprocess.check_output(command)
                         if (range == 0):
-                                timing = re.search("\s(\d+\.\d+)s\s", out).groups()[0]
+                                timing = re.search("\s(\d+\.\d+)\s", out).groups()[0]
                                 timing_list.append(timing)
                         else:
                                 f.write(out)

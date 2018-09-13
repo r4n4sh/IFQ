@@ -184,9 +184,9 @@ int main(int argc, char * argv[]) {
 		data = (unsigned long *) malloc(sizeof(unsigned long) * n);
 
 #if defined(TEST_QUERY)  | defined(TEST_QUERY_INTERVALS)
-		int range = 10;
-		int interval_arr_size = ceil(n/range);
-		intervals = (unsigned *) malloc(sizeof(unsigned) * interval_arr_size);
+		int range = 10000;
+		//int interval_arr_size = ceil(n/range);
+		//intervals = (unsigned *) malloc(sizeof(unsigned) * interval_arr_size);
 #endif
 		int block_sz = ceil((window_size * epsilon)/6);
 		int test_window =  window_size;
