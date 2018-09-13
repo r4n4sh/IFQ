@@ -496,7 +496,7 @@ int main(int argc, char * argv[]) {
     	int first = block_sz;
 		int last = interval_size_pkt;
 
-		cout << "first: " << first << "last: " << last << endl;
+		cout << "first: " << first << " last: " << last << " last pkt: "<< acck->getLastBlock()*block_sz << endl;
 /*
         for (i = 0; i < (n/range); i++)  {
 			intervals[i] =  rand() % (window_size - interval_size_pkt) + 1;
