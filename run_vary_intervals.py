@@ -59,7 +59,7 @@ for dataset in datasets:
 
 
 
-        RUNS = 1
+        RUNS = 11
         gamma = 1
         n = 10000000
         threshold = 1
@@ -68,7 +68,7 @@ for dataset in datasets:
         epsilon = 256
         fn = "./hhh2RSS"
         speeds = []
-        range = 1
+        range = 0
         k_algo = str(1)
 
         if (sys.argv[1].find("acc") != -1):
@@ -86,7 +86,8 @@ for dataset in datasets:
                         print " ".join(command)
                         out = subprocess.check_output(command)
                         if (range == 0):
-                                timing = re.search("\s(\d+\.\d+)\s", out).groups()[0]
+                                timing = re.search("\s(\d+\.\d+)s\s", out).groups()[0]
+                                print timing
                                 timing_list.append(timing)
                         else:
                                 f.write(out)

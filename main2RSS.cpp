@@ -455,7 +455,7 @@ int main(int argc, char * argv[]) {
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
 
-		printf( "./hit %d pairs took %lfs %dB [%d counters %d window_size]\n", n, time, memory, counters, window_size);
+		printf( "./hit %d pairs took %lfs %dB [%d counters %d window_size %d %% interval_size]\n", n, time, memory, counters, window_size);
 #endif
 
 #ifdef RAW_TESTING
