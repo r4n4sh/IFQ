@@ -64,7 +64,7 @@ for dataset in datasets:
         n = 10000000
         threshold = 1
         window_size = 1048576
-        intval_range = [1,5,10,15,20,30,50]
+        intval_range = [1,5,10,15,30,50]
         epsilon = 256
         fn = "./hhh2RSS"
         speeds = []
