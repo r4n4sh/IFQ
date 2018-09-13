@@ -491,9 +491,12 @@ int main(int argc, char * argv[]) {
 
 		interval_size_pkt = ceil(size_precentage * acck->getLastBlock()*block_sz); // 10% of window_size
 
-    	int first = rand() % (acck->getLastBlock()*block_sz - interval_size_pkt) + 1;
-		int last = first + interval_size_pkt;
+    	//int first = rand() % (acck->getLastBlock()*block_sz - interval_size_pkt) + 1;
+		//int last = first + interval_size_pkt;
+    	int first = block_sz
+		int last = interval_size_pkt;
 
+		cout << "first: " << first << "last: " << last << end;
 /*
         for (i = 0; i < (n/range); i++)  {
 			intervals[i] =  rand() % (window_size - interval_size_pkt) + 1;
@@ -570,7 +573,7 @@ int main(int argc, char * argv[]) {
 			
 
 			for (int k = first; k<= last; ++k) {
-				if (window[k] == data[i])
+				aif (window[k] == data[i])
 					exact += 1;
 			}
 
