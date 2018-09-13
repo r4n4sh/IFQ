@@ -493,7 +493,7 @@ int main(int argc, char * argv[]) {
 
     	//int first = rand() % (acck->getLastBlock()*block_sz - interval_size_pkt) + 1;
 		//int last = first + interval_size_pkt;
-    	int first = block_sz
+    	int first = block_sz;
 		int last = interval_size_pkt;
 
 		cout << "first: " << first << "last: " << last << end;
