@@ -24,8 +24,8 @@
 
 //#define TEST_UPDATE 
 //#define TEST_QUERY
-#define TEST_QUERY_INTERVALS
-//#define TEST_ERROR_MEMORY
+//#define TEST_QUERY_INTERVALS
+#define TEST_ERROR_MEMORY
 
 //#define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
@@ -573,7 +573,7 @@ int main(int argc, char * argv[]) {
 			
 
 			for (int k = first; k<= last; ++k) {
-				aif (window[k] == data[i])
+				if (window[k] == data[i])
 					exact += 1;
 			}
 
