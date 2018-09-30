@@ -324,7 +324,7 @@ int main(int argc, char * argv[]) {
 		begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            hit->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size);
+            hit->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size_pkt);
         }
 
 		endt = clock();
@@ -366,7 +366,7 @@ int main(int argc, char * argv[]) {
 		ftime(&begintb);
 
         for (i = 0; i < n; i++)  {
-            raw->intervalQuery(data[i], intervals[i/range], intervals[i/range] + interval_size);
+            raw->intervalQuery(data[i], intervals[i/range], intervals[i/range] + interval_size_pkt);
         }
 
 		endt = clock();
@@ -392,7 +392,7 @@ int main(int argc, char * argv[]) {
 		begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            acck->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size);
+            acck->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size_pkt);
         }
 
 		endt = clock();
@@ -455,7 +455,7 @@ int main(int argc, char * argv[]) {
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
 
-		printf( "./hit %d pairs took %lfs %dB [%d counters %d window_size %d interval_size]\n", n, time, memory, counters, window_size, percentage);
+		printf( "./hit %d pairs took %lfs %dB [%d counters %d window_size %d interval_size_pkt]\n", n, time, memory, counters, window_size, percentage);
 #endif
 
 #ifdef RAW_TESTING
@@ -514,7 +514,7 @@ int main(int argc, char * argv[]) {
 		time = ((double)(endt-begint))/CLK_PER_SEC;
 		memory = maxmemusage();
 
-		printf( "./acc%d %d pairs took %lfs %dB [%d counters %d window_size %d interval_size]\n", k_algo, n, time, memory, counters, window_size, percentage);
+		printf( "./acc%d %d pairs took %lfs %dB [%d counters %d window_size %d interval_size_pkt]\n", k_algo, n, time, memory, counters, window_size, percentage);
 #endif
 
 #endif
