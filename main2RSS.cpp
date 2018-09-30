@@ -320,6 +320,7 @@ int main(int argc, char * argv[]) {
 			intervals[i] = 1 + rand() % (n - interval_size_pkt);
         }
 */
+        interval_size_pkt = 0.1 *window_size;
         int first = 1 + rand() % (n - interval_size_pkt);
 
 		begint = clock();
