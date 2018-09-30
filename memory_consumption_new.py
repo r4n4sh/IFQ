@@ -26,7 +26,7 @@ def plot_memory(memory):
     LW = 4
 
     plt.plot(phis, average_memory["RAW"],"-.8"  ,label="$RAW$",markersize=MS, linewidth=LW, c="black")
-    plt.plot(phis, average_memory["hhh2RSS"],":*"   ,label="$HIT$" , ms=25,markersize=MS, linewidth=LW, c="purple")
+    plt.plot(phis, average_memory["hhh2RSS"],":*"   ,label="$HIT$" ,markersize=MS, linewidth=LW, c="purple")
     plt.plot(phis, average_memory["acc"],"->",label="$ACC_1$", markersize=MS, linewidth=LW, c="blue")
     plt.plot(phis, average_memory["acc1"],"-.s",label="$ACC_2$", markersize=MS, linewidth=LW, c="red")
     plt.plot(phis, average_memory["baseWRSS"],"-v",label="$WCSS$", markersize=MS, linewidth=LW, c="sienna")

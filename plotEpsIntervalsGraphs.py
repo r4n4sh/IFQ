@@ -11,7 +11,7 @@ import sys
 def plot_speeds(speeds, dataset):
     average_speeds = speeds
     MS = 12
-    LW = 4
+    LW = 2
     intervals = [1,5,10,15,30,50]
     print intervals
     print average_speeds["acc1"]
@@ -19,24 +19,27 @@ def plot_speeds(speeds, dataset):
     print average_speeds["acc4"]
     print average_speeds["acc8"]
     print average_speeds["hit"]
-    plt.plot(intervals, average_speeds["hit"],"-o",label="$HIT$", markersize=MS, linewidth=LW, c="red")
-    plt.plot(intervals, average_speeds["acc1"],"-o",label="$ACC_1$", markersize=MS, linewidth=LW, c="blue")
-    plt.plot(intervals, average_speeds["acc2"],"-o",label="$ACC_2$", markersize=MS, linewidth=LW, c="purple")
-    plt.plot(intervals, average_speeds["acc4"],"-o",label="$ACC_4$", markersize=MS, linewidth=LW, c="yellow")
-    plt.plot(intervals, average_speeds["acc8"],"-o",label="$ACC_8$", markersize=MS, linewidth=LW, c="orange")
+    print average_speeds["cm"]
+
+    plt.plot(intervals, average_speeds["hit"],":*" ,label="$HIT$", markersize=MS, markeredgecolor="k",linewidth=LW, c="purple")
+    plt.plot(intervals, average_speeds["acc1"],"->",label="$ACC_1$", markersize=MS, markeredgecolor="k",linewidth=LW, c="blue")
+    plt.plot(intervals, average_speeds["acc2"],"-.s",label="$ACC_2$", markersize=MS, markeredgecolor="k",linewidth=LW, c="red")
+    plt.plot(intervals, average_speeds["acc4"],"--^",label="$ACC_4$", markersize=MS, markeredgecolor="k",linewidth=LW, c="yellow")
+    plt.plot(intervals, average_speeds["acc8"],":<",label="$ACC_8$", markersize=MS, markeredgecolor="k",linewidth=LW, c="orange")
+    plt.plot(intervals, average_speeds["cm"],"-D",label="$ECM$", markersize=MS, markeredgecolor="k",linewidth=LW, c="darkcyan")
 
     #plt.xscale("log",basex=2)
     
     #plt.yscale("log",basex=2)
     #plt.gca().xaxis.set_major_locator(ticker.LogLocator(base=2))
 
-    plt.xlabel("Interval size ('%' of window size)", fontsize=20)
+    plt.xlabel("Interval size (% of window size)", fontsize=20)
     ylabel_str = "Queries/seconds [Millions]"
     plt.ylabel(ylabel_str, fontsize=20)
     plt.tick_params(labelsize=10)
     plt.xlim(1, 50)
     plt.ylim(0, 2) #For Queries
-    plt.legend(loc="best") # keys of the graphs
+    plt.legend(loc="best", numpoints=2) # keys of the graphs
     plt.tight_layout()
     plt.savefig('vary_intervals_sizes.png')
     plt.clf()

@@ -71,7 +71,7 @@ def memory_consumption(alg):
 def plot_speeds(speeds, dataset):
     average_speeds = speeds
     MS = 12
-    LW = 4
+    LW = 2
 
 
     memory_consumption("hit")
@@ -81,17 +81,23 @@ def plot_speeds(speeds, dataset):
     memory_consumption("acc8")
     #memory_consumption("ECM")
 
-    print "values of x", memory["acc8"]
-    print "value of y", average_speeds["acc8"]
-    print "values of x", memory["acc4"]
-    print "value of y", average_speeds["acc4"]
+    print "values of x acc8", memory["acc8"]
+    print "value of y acc8", average_speeds["acc8"]
+    print "values of x acc4", memory["acc4"]
+    print "value of y acc4", average_speeds["acc4"]
+    print "values of x acc2", memory["acc2"]
+    print "value of y acc2", average_speeds["acc2"]
+    print "values of x acc1", memory["acc1"]
+    print "value of y acc1", average_speeds["acc1"]
+    print "values of x hit", memory["hit"]
+    print "value of y hit", average_speeds["hit"]
 
 
-    #plt.plot(memory["hhh2RSS"], average_speeds["hhh2RSS"],"-o",label="$HIT$", markersize=MS, linewidth=LW, c="purple")
-    #plt.plot(memory["acc1"], average_speeds["acc1"],"-o",label="$ACC_1$", markersize=MS, linewidth=LW, c="blue")
-    #plt.plot(memory["acc2"], average_speeds["acc2"],"-o",label="$ACC_2$", markersize=MS, linewidth=LW, c="red")
-    plt.plot(memory["acc4"], average_speeds["acc4"],"-o",label="$ACC_4$", markersize=MS, linewidth=LW, c="orange")
-    plt.plot(memory["acc8"], average_speeds["acc4"],"-o",label="$ACC_8$", markersize=MS, linewidth=LW, c="red")
+    plt.plot(memory["hit"], average_speeds["hit"],":*",label="$HIT$", markersize=MS, linewidth=LW, markeredgecolor="k", c="purple")
+    plt.plot(memory["acc1"], average_speeds["acc1"],"->",label="$ACC_1$", markersize=MS, linewidth=LW,markeredgecolor="k",c="blue")
+    plt.plot(memory["acc2"], average_speeds["acc2"],"-.s",label="$ACC_2$", markersize=MS, linewidth=LW, markeredgecolor="k",c="red")
+    plt.plot(memory["acc4"], average_speeds["acc4"],"--^",label="$ACC_4$", markersize=MS, linewidth=LW,  markeredgecolor="k",c="yellow")
+    plt.plot(memory["acc8"], average_speeds["acc8"],":<",label="$ACC_8$", markersize=MS, linewidth=LW, markeredgecolor="k",c="orange")
 
     #plt.xscale("log",basex=2)
     #plt.yscale("log",basex=2)
@@ -101,17 +107,17 @@ def plot_speeds(speeds, dataset):
     ylabel_str = "Observed Error"
     plt.ylabel(ylabel_str, fontsize=24)
     plt.tick_params(labelsize=10)
-    plt.xlim(1, 30)
-    plt.ylim(0, 500) #For Queries
-    plt.legend(loc="best") # keys of the graphs
+    plt.xlim(1, 15)
+    plt.ylim(0, 3000) #For Queries
+    plt.legend(loc="best", numpoints=2) # keys of the graphs
     plt.tight_layout()
-    plt.savefig('test.png')
+    plt.savefig('emp_error.png')
     plt.clf()
 
 
 
 csvFiles = dict()
-csvFiles['Chicago16'] ='tmp.txt'
+csvFiles['Chicago16'] ='merged_emp_error.txt'
 #csvFiles['SanJose14'] = sys.argv[1] + '/MySanJose_epsilon.txt'
 #csvFiles['Univ1'] = sys.argv[1] + '/MyUniv1_epsilon.txt'
 #csvFiles['Univ2'] = sys.argv[1] + '/MyUniv2_epsilon.txt'
@@ -125,11 +131,11 @@ minEps = 3
 maxEps = 14
 speeds = dict()
 eprange = dict()
-eprange["hit"]= range(10,15)
-eprange["acc1"]=range(6,9)
+eprange["hit"]= range(10,14)
+eprange["acc1"]=range(6,10)
 eprange["acc2"]=range(8,12)
 eprange["acc4"]=range(9,14)
-eprange["acc8"]=range(9,14)
+eprange["acc8"]=range(9,15)
 
 
 for dataset in csvFiles:
