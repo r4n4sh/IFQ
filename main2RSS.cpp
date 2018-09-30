@@ -315,16 +315,17 @@ int main(int argc, char * argv[]) {
         for (i = 0; i < n; i++)  {
             hit->update(data[i], 1);
         }
-
+/*
         for (i = 0; i < (n/range); i++)  {
 			intervals[i] = 1 + rand() % (n - interval_size_pkt);
         }
-
+*/
+        int first = 1 + rand() % (n - interval_size_pkt);
 
 		begint = clock();
 		ftime(&begintb);
         for (i = 0; i < n; i++)  {
-            hit->intervalFrequencyQuery(data[i], intervals[i], intervals[i] + interval_size_pkt);
+            hit->intervalFrequencyQuery(data[i], first, first + interval_size_pkt);
         }
 
 		endt = clock();
