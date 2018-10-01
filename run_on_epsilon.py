@@ -80,11 +80,11 @@ for dataset in datasets:
 
         RUNS = 10
         FIRST_PHINDEX = 3
-        LAST_PHINDEX = 14
+        LAST_PHINDEX = 4
         #LAST_PHINDEX = 14 #for RAW
         gamma = 1
-        #n = 10000000
-        n = 64000000
+        n = 10000000
+        #n = 64000000
 
         #n = 10000
         threshold = 1

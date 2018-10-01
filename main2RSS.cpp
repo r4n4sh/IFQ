@@ -23,9 +23,9 @@
 /*********** TESTS ***************/
 
 //#define TEST_UPDATE 
-//#define TEST_QUERY
+#define TEST_QUERY
 //#define TEST_QUERY_INTERVALS
-#define TEST_ERROR_MEMORY
+//#define TEST_ERROR_MEMORY
 
 //#define HIT_TESTING 1
 //#define BASE_WRSS_ALGO 1
@@ -320,8 +320,9 @@ int main(int argc, char * argv[]) {
 			intervals[i] = 1 + rand() % (n - interval_size_pkt);
         }
 */
-        interval_size_pkt = 0.1 *window_size;
-        int first = 1 + rand() % (n - interval_size_pkt);
+		interval_size_pkt = ceil(size_precentage * hit->getLastBlock()*block_sz); // 10% of window_size
+
+    	int first = rand() % (hit->getLastBlock()*block_sz - interval_size_pkt) + 1;
 
 		begint = clock();
 		ftime(&begintb);
@@ -393,9 +394,11 @@ int main(int argc, char * argv[]) {
 			intervals[i] = 1 + rand() % (n - interval_size_pkt);
         }*/
 
-        interval_size_pkt = 0.1 *window_size;
-        int first = 1 + rand() % (n - interval_size_pkt);
 
+
+		interval_size_pkt = ceil(size_precentage * acck->getLastBlock()*block_sz); // 10% of window_size
+
+    	int first = rand() % (acck->getLastBlock()*block_sz - interval_size_pkt) + 1;
 
 		begint = clock();
 		ftime(&begintb);
